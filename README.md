@@ -1,2 +1,2 @@
 # SAMD21
-Library Helpers for the Atemel SAM21D 
+Library Helpers for the Atmel SAM21D 
