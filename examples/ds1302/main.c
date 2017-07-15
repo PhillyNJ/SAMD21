@@ -1,11 +1,20 @@
 /**
  * Example DS1302 with SAMD21 xplained pro
+<<<<<<< HEAD
  *	Pin Out - To change pinout to different pins, see ds1302.h
  *	CE ->	PORT_PB00
  *  DATA ->	PORT_PB01
  *  SCLK->	PORT_PB06
  *  If you change the pins to different port/group, you need to update any register calls 
  *  s
+=======
+ * Pin Out - To change pinout to different pins, see ds1302.h
+ *  CE ->	PORT_PB00
+ *  DATA ->	PORT_PB01
+ *  SCLK->	PORT_PB06
+ *  If you change the pins to different port/group, you need to update any register calls 
+ *  
+>>>>>>> 6a8e7132e063d4db83cb7e5eea5ae00234aee259
  *  SAMD21 by default runs at 8mhz
  */
 #include <asf.h>
