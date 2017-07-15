@@ -26,7 +26,6 @@
  const char friday[]= "Friday";
  const char saturday[]= "Saturday";
  const char sunday[] = "Sunday";
- 
 
  void ds1302_init(bool addDelay){
  	additionalDelay = addDelay;
@@ -420,8 +419,6 @@ void ds1302_set_tcr(uint8_t value)
 	ds1302_write_register(REG_TCR, value);
 }
 
-
-
 void ds1302_get_time(ds_time_t *t){
 	
 	ds1302_burst_read();		
@@ -435,8 +432,6 @@ void ds1302_get_time(ds_time_t *t){
 	t->year	= ds1302_decode_y(_burstArray[6])+2000;
 	
  }
- 
-
  
 uint8_t ds1302_read_byte()
 {	 
