@@ -25,10 +25,14 @@ typedef struct {
 	uint8_t		hour;
 	uint8_t		min;
 	uint8_t		sec;
-	uint8_t		date;
+	uint8_t		day;
 	uint8_t		mon;
 	uint16_t	year;
 	uint8_t		dow;
+	char		dowl[12]; // day of week long
+	char		monl[12]; // month long
+	char		dows[3]	; // day of week short
+	char		mons[3]	; // month short
 
 }ds_time_t;
 
@@ -50,7 +54,7 @@ typedef enum {
 #define REG_SEC		0
 #define REG_MIN		1
 #define REG_HOUR	2
-#define REG_DATE	3
+#define REG_DAY		3
 #define REG_MON		4
 #define REG_DOW		5
 #define REG_YEAR	6
@@ -84,35 +88,40 @@ uint8_t _burstArray[8];
 bool additionalDelay;
 
 void	ds1302_init(bool addDelay);
+void    ds1302_set_compile_time(uint8_t dow);
+void	ds1302_get_complete_time(ds_time_t *t);
+void	ds1302_set_month_str(ds_time_t *t);
+void	ds1302_set_day_of_week_str(ds_time_t *t);
 
-void	ds1302_getTime(ds_time_t *t);
-void	ds1302_setTime(uint8_t hour, uint8_t min, uint8_t sec);
-void	ds1302_setDate(uint8_t date, uint8_t mon, uint16_t year);
-void	ds1302_setDOW(uint8_t dow);
+void	ds1302_get_time(ds_time_t *t);
+void	ds1302_set_time(uint8_t hour, uint8_t min, uint8_t sec);
+void	ds1302_set_date(uint8_t date, uint8_t mon, uint16_t year);
+void	ds1302_set_dow(uint8_t dow);
+void	ds1302_get_time_str(uint8_t format, char *output);
+void	ds1302_get_date_str(uint8_t slformat, uint8_t eformat, char divider, char *output);
+void	ds1302_get_dow_str(uint8_t format, char *output);
+void	ds1302_get_month_str(uint8_t format, char *output);
 
-void	ds1302_getTimeStr(uint8_t format, char *output);
-void	ds1302_getDateStr(uint8_t slformat, uint8_t eformat, char divider, char *output);
-void	ds1302_getDOWStr(uint8_t format, char *output);
-void	ds1302_getMonthStr(uint8_t format, char *output);
 
 void	ds1302_halt(bool value);
-void	ds1302_writeProtect(bool enable);
-void	ds1302_setTCR(uint8_t value);
-
-void	ds1302_writeBuffer(ds1302_ram_t *r);
-void	ds1302_readBuffer(ds1302_ram_t *r);
+void	ds1302_write_protect(bool enable);
+void	ds1302_set_tcr(uint8_t value);
+void	ds1302_write_buffer(ds1302_ram_t *r);
+void	ds1302_read_buffer(ds1302_ram_t *r);
 void	ds1302_poke(uint8_t addr, uint8_t value);
 uint8_t	ds1302_peek(uint8_t addr);
-
-uint8_t	ds1302_readByte(void);
-void	ds1302_writeByte(uint8_t value);
-uint8_t	ds1302_readRegister(uint8_t reg);
-void 	ds1302_writeRegister(uint8_t reg, uint8_t value);
-void	ds1302_burstRead(void);
+uint8_t	ds1302_read_byte(void);
+void	ds1302_write_byte(uint8_t value);
+uint8_t	ds1302_read_register(uint8_t reg);
+void 	ds1302_write_register(uint8_t reg, uint8_t value);
+void	ds1302_burst_read(void);
 uint8_t	ds1302_decode(uint8_t value);
-uint8_t	ds1302_decodeH(uint8_t value);
-uint8_t	ds1302_decodeY(uint8_t value);
+uint8_t	ds1302_decode_h(uint8_t value);
+uint8_t	ds1302_decode_y(uint8_t value);
 uint8_t	ds1302_encode(uint8_t vaule);
-void	ds1302_shiftOut(uint8_t bitOrder, uint8_t val);
-void	 ds1302_set_data_port_direction(direction_t dir);
+void	ds1302_shift_out(uint8_t bitOrder, uint8_t val);
+void	ds1302_set_data_port_direction(direction_t dir);
+
+
+
 #endif /* DS1302_H_ */

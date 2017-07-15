@@ -32,39 +32,64 @@
  	additionalDelay = addDelay;
 	REG_PORT_DIRSET1 = CE | SCLK;
  }
-
  
-void ds1302_setTime(uint8_t hour, uint8_t min, uint8_t sec)
+void ds1302_set_compile_time(uint8_t dow) {
+	
+	char s_month[5];
+	int month, day, year, hour, minute;
+	
+	static const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+
+	sscanf(__DATE__, "%s %d %d", s_month, &day, &year);
+	sscanf(__TIME__, "%d:%d", &hour, &minute);
+
+	month = (strstr(month_names, s_month)-month_names)/3;
+	
+	  // set time;
+	ds1302_write_register(REG_HOUR, ds1302_encode(hour));
+	ds1302_write_register(REG_MIN, ds1302_encode(minute));
+	ds1302_write_register(REG_SEC, ds1302_encode(0));
+	 	 
+	year -= 2000;
+	ds1302_write_register(REG_YEAR, ds1302_encode(year));
+	ds1302_write_register(REG_MON, ds1302_encode(month + 1));
+	ds1302_write_register(REG_DAY, ds1302_encode(day));
+
+	ds1302_write_register(REG_DOW, dow);
+ }
+
+
+void ds1302_set_time(uint8_t hour, uint8_t min, uint8_t sec)
  {
 	 if (((hour>=0) && (hour<24)) && ((min>=0) && (min<60)) && ((sec>=0) && (sec<60)))
 	 {
-		 ds1302_writeRegister(REG_HOUR, ds1302_encode(hour));
-		 ds1302_writeRegister(REG_MIN, ds1302_encode(min));
-		 ds1302_writeRegister(REG_SEC, ds1302_encode(sec));
+		 ds1302_write_register(REG_HOUR, ds1302_encode(hour));
+		 ds1302_write_register(REG_MIN, ds1302_encode(min));
+		 ds1302_write_register(REG_SEC, ds1302_encode(sec));
 	 }
  }
 
- void ds1302_setDate(uint8_t date, uint8_t mon, uint16_t year)
+ void ds1302_set_date(uint8_t day, uint8_t mon, uint16_t year)
  {
-	 if (((date>0) && (date<=31)) && ((mon>0) && (mon<=12)) && ((year>=2000) && (year<3000)))
+	 if (((day>0) && (day<=31)) && ((mon>0) && (mon<=12)) && ((year>=2000) && (year<3000)))
 	 {
 		 year -= 2000;
-		 ds1302_writeRegister(REG_YEAR, ds1302_encode(year));
-		 ds1302_writeRegister(REG_MON, ds1302_encode(mon));
-		 ds1302_writeRegister(REG_DATE, ds1302_encode(date));
+		 ds1302_write_register(REG_YEAR, ds1302_encode(year));
+		 ds1302_write_register(REG_MON, ds1302_encode(mon));
+		 ds1302_write_register(REG_DAY, ds1302_encode(day));
 	 }
  }
-void ds1302_setDOW(uint8_t dow)
+void ds1302_set_dow(uint8_t dow)
 {
 	if ((dow>0) && (dow<8))
-	ds1302_writeRegister(REG_DOW, dow);
+	ds1302_write_register(REG_DOW, dow);
 }
 
-void ds1302_getTimeStr(uint8_t format, char *output)
+void ds1302_get_time_str(uint8_t format, char *output)
 {
 	
 	ds_time_t t;
-	ds1302_getTime(&t);
+	ds1302_get_time(&t);
 	if (t.hour<10)
 	output[0]=48;
 	else
@@ -91,19 +116,19 @@ void ds1302_getTimeStr(uint8_t format, char *output)
 	
 }
 
-void ds1302_getDateStr(uint8_t slformat, uint8_t eformat, char divider, char *output)
+void ds1302_get_date_str(uint8_t slformat, uint8_t eformat, char divider, char *output)
 {	
 	int yr, offset;
 	ds_time_t t;
-	ds1302_getTime(&t);
+	ds1302_get_time(&t);
 	switch (eformat)
 	{
 		case FORMAT_LITTLEENDIAN:
-		if (t.date<10)
+		if (t.day<10)
 		output[0]=48;
 		else
-		output[0]=(char)((t.date / 10)+48);
-		output[1]=(char)((t.date % 10)+48);
+		output[0]=(char)((t.day / 10)+48);
+		output[1]=(char)((t.day % 10)+48);
 		output[2]=divider;
 		if (t.mon<10)
 		output[3]=48;
@@ -161,11 +186,11 @@ void ds1302_getDateStr(uint8_t slformat, uint8_t eformat, char divider, char *ou
 		output[3+offset]=(char)((t.mon / 10)+48);
 		output[4+offset]=(char)((t.mon % 10)+48);
 		output[5+offset]=divider;
-		if (t.date<10)
+		if (t.day<10)
 		output[6+offset]=48;
 		else
-		output[6+offset]=(char)((t.date / 10)+48);
-		output[7+offset]=(char)((t.date % 10)+48);
+		output[6+offset]=(char)((t.day / 10)+48);
+		output[7+offset]=(char)((t.day % 10)+48);
 		output[8+offset]=0;
 		break;
 		case FORMAT_MIDDLEENDIAN:
@@ -175,11 +200,11 @@ void ds1302_getDateStr(uint8_t slformat, uint8_t eformat, char divider, char *ou
 		output[0]=(char)((t.mon / 10)+48);
 		output[1]=(char)((t.mon % 10)+48);
 		output[2]=divider;
-		if (t.date<10)
+		if (t.day<10)
 		output[3]=48;
 		else
-		output[3]=(char)((t.date / 10)+48);
-		output[4]=(char)((t.date % 10)+48);
+		output[3]=(char)((t.day / 10)+48);
+		output[4]=(char)((t.day % 10)+48);
 		output[5]=divider;
 		if (slformat==FORMAT_SHORT)
 		{
@@ -205,11 +230,11 @@ void ds1302_getDateStr(uint8_t slformat, uint8_t eformat, char divider, char *ou
 	
 }
 
-void ds1302_getDOWStr(uint8_t format, char *output)
+void ds1302_get_dow_str(uint8_t format, char *output)
 {
 	
 	ds_time_t t;
-	ds1302_getTime(&t);
+	ds1302_get_time(&t);
 		
 	
 	switch (t.dow)
@@ -243,11 +268,93 @@ void ds1302_getDOWStr(uint8_t format, char *output)
 	
 }
 
-void ds1302_getMonthStr(uint8_t format, char *output)
+void ds1302_get_complete_time(ds_time_t *t){
+	
+	ds1302_get_time(t);
+	ds1302_set_month_str(t);
+	ds1302_set_day_of_week_str(t);
+}
+
+void ds1302_set_month_str(ds_time_t *t){
+
+	switch (t->mon)
+	{
+		case 1:
+		strncpy(t->monl, janurary, sizeof(janurary));
+		break;
+		case 2:
+		strncpy(t->monl, february, sizeof(february));
+		break;
+		case 3:
+		strncpy(t->monl, march, sizeof(march));
+		break;
+		case 4:
+		strncpy(t->monl, april, sizeof(april));
+		break;
+		case 5:
+		strncpy(t->monl, may, sizeof(may));
+		break;
+		case 6:
+		strncpy(t->monl, june, sizeof(june));
+		break;
+		case 7:
+		strncpy(t->monl, july, sizeof(july));
+		break;
+		case 8:
+		strncpy(t->monl, august, sizeof(august));
+		break;
+		case 9:
+		strncpy(t->monl, september, sizeof(september));
+		break;
+		case 10:
+		strncpy(t->monl, october, sizeof(october));
+		break;
+		case 11:
+		strncpy(t->monl, november, sizeof(november));
+		break;
+		case 12:
+		strncpy(t->monl, december, sizeof(december));
+		break;
+	}
+	
+		strncpy(t->mons, t->monl,3);
+	
+}
+
+void ds1302_set_day_of_week_str(ds_time_t *t){
+	switch (t->dow)
+	{
+		case MONDAY:
+		strncpy(t->dowl, monday, sizeof(monday));
+		break;
+		case TUESDAY:
+		strncpy(t->dowl, tuesday, sizeof(tuesday));
+		break;
+		case WEDNESDAY:
+		strncpy(t->dowl, wednesday, sizeof(wednesday));
+		break;
+		case THURSDAY:
+		strncpy(t->dowl,thursday, sizeof(thursday));
+		break;
+		case FRIDAY:
+		strncpy(t->dowl, friday, sizeof(friday));
+		break;
+		case SATURDAY:
+		strncpy(t->dowl, saturday, sizeof(saturday));
+		break;
+		case SUNDAY:
+		strncpy(t->dowl, sunday, sizeof(sunday));
+		break;
+	}
+	strncpy(t->dows, t->dowl,3);
+
+}
+
+void ds1302_get_month_str(uint8_t format, char *output)
 {
 	
 	ds_time_t t;
-	ds1302_getTime(&t.mon);
+	ds1302_get_time(&t);
 
 	switch (t.mon)
 	{
@@ -295,43 +402,43 @@ void ds1302_getMonthStr(uint8_t format, char *output)
 
 void ds1302_halt(bool enable)
 {
-	uint8_t _reg = ds1302_readRegister(REG_SEC);
+	uint8_t _reg = ds1302_read_register(REG_SEC);
 	_reg &= ~(1 << 7);
 	_reg |= (enable << 7);
-	ds1302_writeRegister(REG_SEC, _reg);
+	ds1302_write_register(REG_SEC, _reg);
 
 }
 
-void ds1302_writeProtect(bool enable)
+void ds1302_write_protect(bool enable)
 {
 	uint8_t _reg = (enable << 7);
-	ds1302_writeRegister(REG_WP, _reg);
+	ds1302_write_register(REG_WP, _reg);
 }
 
-void ds1302_setTCR(uint8_t value)
+void ds1302_set_tcr(uint8_t value)
 {
-	ds1302_writeRegister(REG_TCR, value);
+	ds1302_write_register(REG_TCR, value);
 }
 
 
 
-void ds1302_getTime(ds_time_t *t){
+void ds1302_get_time(ds_time_t *t){
 	
-	ds1302_burstRead();		
+	ds1302_burst_read();		
 
 	t->sec	= ds1302_decode(_burstArray[0]);
 	t->min	= ds1302_decode(_burstArray[1]);
-	t->hour	= ds1302_decodeH(_burstArray[2]);
-	t->date	= ds1302_decode(_burstArray[3]);
+	t->hour	= ds1302_decode_h(_burstArray[2]);
+	t->day	= ds1302_decode(_burstArray[3]);
 	t->mon	= ds1302_decode(_burstArray[4]);
 	t->dow	= _burstArray[5];
-	t->year	= ds1302_decodeY(_burstArray[6])+2000;
+	t->year	= ds1302_decode_y(_burstArray[6])+2000;
 	
  }
  
 
  
-uint8_t ds1302_readByte()
+uint8_t ds1302_read_byte()
 {	 
 	ds1302_set_data_port_direction(INPUT);
 		
@@ -354,7 +461,7 @@ uint8_t ds1302_readByte()
 	return value;
 }
 
-uint8_t ds1302_readRegister(uint8_t reg)
+uint8_t ds1302_read_register(uint8_t reg)
  {
 	 uint8_t cmdByte = 129;
 	 cmdByte |= (reg << 1);
@@ -364,35 +471,35 @@ uint8_t ds1302_readRegister(uint8_t reg)
 	 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
 	 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
 
-	 ds1302_writeByte(cmdByte);	
-	 readValue = ds1302_readByte();
+	 ds1302_write_byte(cmdByte);	
+	 readValue = ds1302_read_byte();
 	 
 	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
 	
 	 return readValue;
  }
 
-void ds1302_writeRegister(uint8_t reg, uint8_t value)
+void ds1302_write_register(uint8_t reg, uint8_t value)
  {
 	 uint8_t cmdByte = (128 | (reg << 1));
 
 	  REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
 	  REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
 
-	 ds1302_writeByte(cmdByte);
-	 ds1302_writeByte(value);
+	 ds1302_write_byte(cmdByte);
+	 ds1302_write_byte(value);
 
 	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
  }
 
- void ds1302_writeByte(uint8_t value)
+ void ds1302_write_byte(uint8_t value)
  {
   
 	 ds1302_set_data_port_direction(OUTPUT);
-	 ds1302_shiftOut(LSBFIRST, value);
+	 ds1302_shift_out(LSBFIRST, value);
  }
 
- void ds1302_shiftOut(uint8_t bitOrder, uint8_t val)
+ void ds1302_shift_out(uint8_t bitOrder, uint8_t val)
  {
 	 uint8_t i;
 
@@ -420,15 +527,15 @@ void ds1302_writeRegister(uint8_t reg, uint8_t value)
 	 }
  }
 
-void ds1302_burstRead()
+void ds1302_burst_read()
  {
 	 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
 	 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
 
-	 ds1302_writeByte(191);
+	 ds1302_write_byte(191);
 	 for (int i=0; i<8; i++)
 	 {
-		 _burstArray[i] = ds1302_readByte();		
+		 _burstArray[i] = ds1302_read_byte();		
 	 }
 	  REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
  }
@@ -454,7 +561,7 @@ void ds1302_set_data_port_direction(direction_t dir){
 	 return decoded;
  }
  
- uint8_t ds1302_decodeH(uint8_t value)
+ uint8_t ds1302_decode_h(uint8_t value)
  {
 	 if (value & 128)
 	 value = (value & 15) + (12 * ((value & 32) >> 5));
@@ -463,7 +570,7 @@ void ds1302_set_data_port_direction(direction_t dir){
 	 return value;
  }
 
- uint8_t ds1302_decodeY(uint8_t value)
+ uint8_t ds1302_decode_y(uint8_t value)
  {
 	 uint8_t decoded = (value & 15) + 10 * ((value & (15 << 4)) >> 4);
 	 return decoded;
@@ -475,29 +582,29 @@ void ds1302_set_data_port_direction(direction_t dir){
 	 return encoded;
  }
 
- void ds1302_writeBuffer(ds1302_ram_t *r)
+ void ds1302_write_buffer(ds1302_ram_t *r)
  {
 	  REG_PORT_OUTCLR1 = SCLK;	//   digitalWrite(_sclk_pin, LOW);
 	  REG_PORT_OUTSET1 = CE;	// digitalWrite(_ce_pin, HIGH);
 
-	 ds1302_writeByte(254);
+	 ds1302_write_byte(254);
 	 for (int i=0; i<31; i++)
 	 {
-		 ds1302_writeByte(r->cell[i]);
+		 ds1302_write_byte(r->cell[i]);
 	 }
 	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
  }
 
-void ds1302_readBuffer(ds1302_ram_t *r)
+void ds1302_read_buffer(ds1302_ram_t *r)
  { 
 
 	 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
 	 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
 
-	 ds1302_writeByte(255);
+	 ds1302_write_byte(255);
 	 for (int i=0; i<31; i++)
 	 {
-		 r->cell[i] = ds1302_readByte();
+		 r->cell[i] = ds1302_read_byte();
 	 }
 	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
 	
@@ -513,8 +620,8 @@ void ds1302_poke(uint8_t addr, uint8_t value)
 		 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
 		 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
 
-		 ds1302_writeByte(addr);
-		 ds1302_writeByte(value);
+		 ds1302_write_byte(addr);
+		 ds1302_write_byte(value);
 
 		 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
 	 }
@@ -531,8 +638,8 @@ void ds1302_poke(uint8_t addr, uint8_t value)
 		  REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
 		  REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
 
-		 ds1302_writeByte(addr);
-		 readValue = ds1302_readByte();
+		 ds1302_write_byte(addr);
+		 readValue = ds1302_read_byte();
 		 
 		  REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
 
