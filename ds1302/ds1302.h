@@ -85,9 +85,8 @@ typedef enum {
 #define TCR_OFF		92
 
 uint8_t _burstArray[8];
-bool additionalDelay;
 
-void	ds1302_init(bool addDelay);
+void	ds1302_init(void);
 void    ds1302_set_compile_time(uint8_t dow);
 void	ds1302_get_complete_time(ds_time_t *t);
 void	ds1302_set_month_str(ds_time_t *t);

@@ -27,8 +27,8 @@
  const char saturday[]= "Saturday";
  const char sunday[] = "Sunday";
 
- void ds1302_init(bool addDelay){
- 	additionalDelay = addDelay;
+ void ds1302_init(){
+ 	
 	REG_PORT_DIRSET1 = CE | SCLK;
  }
  
@@ -445,13 +445,13 @@ uint8_t ds1302_read_byte()
 		currentBit = (PORT->Group[1].IN.reg & DATA) > 0;			
 		value |= (currentBit << i);					
 		REG_PORT_OUTSET1 = SCLK; 		
-		delay_us(10);			
+		delay_us(1);			
 		REG_PORT_OUTCLR1 = SCLK; 	
-		
+		delay_us(1);
 	}	
-	if(additionalDelay){
-		delay_us(10); 
-	}
+	
+	delay_us(1); 
+
 				
 	return value;
 }
@@ -463,13 +463,13 @@ uint8_t ds1302_read_register(uint8_t reg)
 
 	 uint8_t readValue;
 
-	 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
-	 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
+	 REG_PORT_OUTCLR1 = SCLK;
+	 REG_PORT_OUTSET1 = CE;
 
 	 ds1302_write_byte(cmdByte);	
 	 readValue = ds1302_read_byte();
 	 
-	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+	 REG_PORT_OUTCLR1 = CE;
 	
 	 return readValue;
  }
@@ -478,13 +478,13 @@ void ds1302_write_register(uint8_t reg, uint8_t value)
  {
 	 uint8_t cmdByte = (128 | (reg << 1));
 
-	  REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
-	  REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
+	  REG_PORT_OUTCLR1 = SCLK;
+	  REG_PORT_OUTSET1 = CE;
 
 	 ds1302_write_byte(cmdByte);
 	 ds1302_write_byte(value);
 
-	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+	 REG_PORT_OUTCLR1 = CE;
  }
 
  void ds1302_write_byte(uint8_t value)
@@ -517,29 +517,30 @@ void ds1302_write_register(uint8_t reg, uint8_t value)
 			}
 		}		
 		 
-		 REG_PORT_OUTSET1 = SCLK;				
+		 REG_PORT_OUTSET1 = SCLK;	
+		 delay_us(1);			
 		 REG_PORT_OUTCLR1 = SCLK;		
 	 }
  }
 
 void ds1302_burst_read()
  {
-	 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
-	 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
+	 REG_PORT_OUTCLR1 = SCLK;
+	 REG_PORT_OUTSET1 = CE;
 
 	 ds1302_write_byte(191);
 	 for (int i=0; i<8; i++)
 	 {
 		 _burstArray[i] = ds1302_read_byte();		
-	 }
-	  REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+ }
+ REG_PORT_OUTCLR1 = CE;
  }
 
 void ds1302_set_data_port_direction(direction_t dir){
 	
 	if(dir == INPUT){
 
-	  REG_PORT_OUTCLR1 = DATA;		 
+	 // REG_PORT_OUTCLR1 = DATA;		 
 	  PORT->Group[1].PINCFG[1].reg = PORT_PINCFG_INEN ;
 
 	} else {
@@ -579,29 +580,29 @@ void ds1302_set_data_port_direction(direction_t dir){
 
  void ds1302_write_buffer(ds1302_ram_t *r)
  {
-	  REG_PORT_OUTCLR1 = SCLK;	//   digitalWrite(_sclk_pin, LOW);
-	  REG_PORT_OUTSET1 = CE;	// digitalWrite(_ce_pin, HIGH);
+	  REG_PORT_OUTCLR1 = SCLK;	
+	  REG_PORT_OUTSET1 = CE;	
 
 	 ds1302_write_byte(254);
 	 for (int i=0; i<31; i++)
 	 {
 		 ds1302_write_byte(r->cell[i]);
 	 }
-	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+	 REG_PORT_OUTCLR1 = CE;
  }
 
 void ds1302_read_buffer(ds1302_ram_t *r)
  { 
 
-	 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
-	 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
+	 REG_PORT_OUTCLR1 = SCLK;
+	 REG_PORT_OUTSET1 = CE;
 
 	 ds1302_write_byte(255);
 	 for (int i=0; i<31; i++)
 	 {
 		 r->cell[i] = ds1302_read_byte();
 	 }
-	 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+	 REG_PORT_OUTCLR1 = CE;
 	
  }
 
@@ -612,13 +613,13 @@ void ds1302_poke(uint8_t addr, uint8_t value)
 	 {
 		 addr = (addr * 2) + 192;
 
-		 REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
-		 REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
+		 REG_PORT_OUTCLR1 = SCLK;
+		 REG_PORT_OUTSET1 = CE;
 
 		 ds1302_write_byte(addr);
 		 ds1302_write_byte(value);
 
-		 REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+		 REG_PORT_OUTCLR1 = CE;
 	 }
  }
 
@@ -630,13 +631,13 @@ void ds1302_poke(uint8_t addr, uint8_t value)
 
 		 uint8_t readValue;
 
-		  REG_PORT_OUTCLR1 = SCLK;//   digitalWrite(_sclk_pin, LOW);
-		  REG_PORT_OUTSET1 = CE;// digitalWrite(_ce_pin, HIGH);
+		  REG_PORT_OUTCLR1 = SCLK;
+		  REG_PORT_OUTSET1 = CE;
 
 		 ds1302_write_byte(addr);
 		 readValue = ds1302_read_byte();
 		 
-		  REG_PORT_OUTCLR1 = CE;// digitalWrite(_ce_pin, LOW);
+		  REG_PORT_OUTCLR1 = CE;
 
 		 return readValue;
 	 }
