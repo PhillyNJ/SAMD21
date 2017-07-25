@@ -55,7 +55,7 @@ int main (void)
 	
 	/* polling alarm 1*/
 	//ds3231_clear_alarm_1();	
-	//ds3231_set_alarm_2(0, 16, 37, DS3231_MATCH_H_M, true);
+	//ds3231_set_alarm_1(0, 0, 0, 37, DS3231_MATCH_S, true);
 
 	delay_s(1);
 	char month[15];
