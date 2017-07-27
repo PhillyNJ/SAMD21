@@ -16,7 +16,7 @@
 	 config_i2c_master.buffer_timeout = 65535;
 
 	 /* Initialize and enable device with config */
-	 while(i2c_master_init(&i2c_master_instance, CONF_I2C_MASTER_MODULE, &config_i2c_master)  != STATUS_OK);
+	 while(i2c_master_init(&i2c_master_instance, SERCOM2, &config_i2c_master)  != STATUS_OK);
 
 	 i2c_master_enable(&i2c_master_instance);
 	 
