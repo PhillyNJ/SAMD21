@@ -18,18 +18,16 @@
 void oled_prints(const char * st, uint8_t x, uint8_t y){
 	int stl, i;
 	stl = strlen(st);
-	uint8_t tempx = x;
+
 	for (i=0; i<stl; i++){
 	    char c = *st++;				
 		if(c == 0x20){		
 			uint8_t indx = oled_getIndex(c);
 		    uint8_t width = font.descriptors[indx][0];				
-			x = width;
-		
-		} else {
-			
+			x = width;		
+		} else {			
 			oled_printc(c, x + (font.last_font_width), y);
-			x=tempx;
+			x=1;
 		}	
 		
 	}	
