@@ -29,6 +29,8 @@
 #define				LANDSCAPE 1
 
 #define swap(type, i, j) {type t = i; i = j; j = t;}
+int tft_width;
+int tft_height;
 
 struct currentFont
 {
@@ -59,13 +61,12 @@ enum tft_type {
 	ILI9325D_8 = 0,
 	ILI9325D_16 = 1,
 	SSD1963_480 = 2,
-	SSD1289 = 3
+	SSD1289 = 3,
+	SSD1963_800 = 4
 };
 
 struct tft_chip{	
-	enum tft_type tft_model;
-	int width;
-	int height;
+	enum tft_type tft_model;	
 	uint8_t pages;
 	uint8_t orient;
 	int page_1; // start address of page

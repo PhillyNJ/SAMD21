@@ -20,6 +20,7 @@
 		 break;
 		 case ILI9325D_16:
 		 case SSD1963_480:
+		 case SSD1963_800:
 		 case SSD1289:
 		 REG_PORT_DIRSET1 = PORTBMASK_16;
 		 break;
@@ -30,13 +31,39 @@
 	 
  }
  void sam_initTft(){
-    
-	 sam_setRST(); //setBit(RS_T);
-	 sam_clearRST();//clearBit(RS_T);
-	 sam_setRST();// setBit(RS_T);
-	// delay_ms(15);
-	 sam_clearCs();//clearBit(CS);
-	 sam_setTFTProperties();// setTFTProperties();
+     switch(tft_conf.tft_model){
+		case SSD1289:
+			tft_width = 239;
+			tft_height = 319;
+			tft_conf.pages = 1;
+			tft_conf.page_1 = 0;			
+			break;
+		case SSD1963_480:
+			tft_width = 272;
+			tft_height = 480;
+			tft_conf.pages = 3;
+			tft_conf.page_1 = 0;
+			tft_conf.page_2 = 272;
+			tft_conf.page_3 = 544;
+			break;
+		case SSD1963_800:
+			// 1 max "SSD1963 is a display controller of 1215K byte frame buffer to support up to 864 x 480 x 24bit graphics content"
+			// The 800X480 only has one page :(
+			tft_width = 479;
+			tft_height = 799;
+			tft_conf.pages = 1;
+			tft_conf.page_1 = 0;		
+			break;
+		default:
+			printf("TFT Width and Height not defined in sam_initTft()\n");
+			break;
+	 }
+	
+	 sam_setRST(); 
+	 sam_clearRST();
+	 sam_setRST();	
+	 sam_clearCs();
+	 sam_setTFTProperties();
  }
  void sam_clearRST() {   
 	
@@ -84,6 +111,7 @@ void sam_setRs() {
 		break;
 		case ILI9325D_16:
 		case SSD1963_480:
+		case SSD1963_800:
 		case SSD1289:
 		REG_PORT_OUTCLR1 = PORTBMASK_16;
 		break;
@@ -120,6 +148,7 @@ void sam_writeBus(uint8_t hv, uint8_t lv) {
 	   break;
 	   case ILI9325D_16:
 	   case SSD1963_480:
+	   case SSD1963_800:
 	   case SSD1289:
 		   sam_write16ToTFT(hv,lv);
 		   sam_pulseBitLow();
@@ -149,6 +178,7 @@ void sam_writeData(uint8_t vh, uint8_t vl) {
 		break;
 		case ILI9325D_16:
 		case SSD1963_480:
+		case SSD1963_800:
 		case SSD1289:
 		sam_write16ToTFT(vh,vl);
 		sam_pulseBitLow();
@@ -183,7 +213,7 @@ void sam_clrScr()
 	sam_clrXY();
 
 	sam_setRs();
-	int pixels = (tft_conf.width + 1) * (tft_conf.height+1);
+	int pixels = (tft_width + 1) * (tft_height+1);
 			
 	for (i = 0; i < pixels; i++)
 	{
@@ -197,9 +227,9 @@ void sam_clrXY()
 {
 	if (tft_conf.orient == PORTRAIT){
 		
-		sam_setXY(0, 0, tft_conf.width, tft_conf.height);
+		sam_setXY(0, 0, tft_width, tft_height);
 	}else{
-		sam_setXY(0, 0, tft_conf.height, tft_conf.width);
+		sam_setXY(0, 0, tft_height, tft_width);
 
 	}
 	
@@ -210,11 +240,10 @@ void sam_setXY(int x1, int y1, int x2, int y2)
 	{
 		swap(int, x1, y1);
 		swap(int, x2, y2)
-		y1 = tft_conf.height - y1;
-		y2 = tft_conf.height - y2;
+		y1 = tft_height - y1;
+		y2 = tft_height - y2;
 		swap(int, y1, y2)
 	}
-
 
     if(tft_conf.tft_model == ILI9325D_8 || tft_conf.tft_model == ILI9325D_16 ){
 		
@@ -241,6 +270,22 @@ void sam_setXY(int x1, int y1, int x2, int y2)
 		sam_writeByteData(y2>>8);
 		sam_writeByteData(y2);
 		sam_writeCom(0x2c);
+
+	} else if(tft_conf.tft_model == SSD1963_800){
+		swap(int, x1, y1);
+		swap(int, x2, y2);
+		sam_writeCom(0x2a);
+		sam_writeByteData(x1>>8);
+		sam_writeByteData(x1);
+		sam_writeByteData(x2>>8);
+		sam_writeByteData(x2);
+		sam_writeCom(0x2b);
+		sam_writeByteData(y1>>8);
+		sam_writeByteData(y1);
+		sam_writeByteData(y2>>8);
+		sam_writeByteData(y2);
+		sam_writeCom(0x2c);
+	
 	}	else if( tft_conf.tft_model == SSD1289){
 	
 		sam_writeComData(0x44,(x2<<8)+x1);
@@ -308,13 +353,14 @@ void sam_fillScr(uint8_t r, uint8_t g, uint8_t b)
 	sam_clearCs();	
 	sam_clrXY();
 
-	int pixels = (tft_conf.width + 1) * (tft_conf.height + 1);
+	int pixels = (tft_width + 1) * (tft_height + 1);
 	
 	sam_setRs();
 	
 	for (i = 0; i < (pixels); i++)
 	{	  
 		sam_writeBus(ch, cl);
+	
 	
 	}
 	sam_setCs();
@@ -333,7 +379,7 @@ void sam_fillPage(uint8_t r, uint8_t g, uint8_t b, uint8_t page){
 		
 	if(tft_conf.orient == LANDSCAPE){
 		
-		sam_setXY(0, tft_conf.width * (page-1), tft_conf.height, tft_conf.width * page); // paging - LANDSCAPE -works
+		sam_setXY(0, tft_width * (page), tft_height, tft_width * page); // paging - LANDSCAPE -works
 			
 	} else {
 		
@@ -341,7 +387,7 @@ void sam_fillPage(uint8_t r, uint8_t g, uint8_t b, uint8_t page){
 		
 	}
 	
-	int pixels = ((tft_conf.width + 1) * (tft_conf.height + 1) * page);
+	int pixels = ((tft_width + 1) * (tft_height + 1) * page);
 	
 	sam_setRs();
 	for (i = 0; i < (pixels); i++)
@@ -902,14 +948,13 @@ void sam_setTFTProperties() {
 			sam_writeComData(0x07, 0x0133); // 262K color and display ON
 
 		break;
-		case SSD1963_480:
-						
+		case SSD1963_480:						
 			
-			sam_writeCom(0xE2);		//PLL multiplier, set PLL clock to 120M
+			sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
 			sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
 			sam_writeByteData(0x02);
 			sam_writeByteData(0x54);
-			sam_writeCom(0xE0);		// PLL enable
+			sam_writeCom(0xE0);				// PLL enable
 			sam_writeByteData(0x01);
 			delay_ms(10);
 			sam_writeCom(0xE0);
@@ -985,6 +1030,83 @@ void sam_setTFTProperties() {
 			sam_writeCom(0x2C);
 		
 		break;
+		case SSD1963_800:
+		sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
+		sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
+		sam_writeByteData(0x02);
+		sam_writeByteData(0x04);
+		sam_writeCom(0xE0);				// PLL enable
+		sam_writeByteData(0x01);
+		delay_ms(10);
+		sam_writeCom(0xE0);
+		sam_writeByteData(0x03);
+		delay_ms(10);
+		sam_writeCom(0x01);				// software reset
+		delay_ms(100);
+		sam_writeCom(0xE6);				//PLL setting for PCLK, depends on resolution
+		sam_writeByteData(0x04);
+		sam_writeByteData(0x93);
+		sam_writeByteData(0xE0);
+
+		sam_writeCom(0xB0);				//LCD SPECIFICATION
+		sam_writeByteData(0x19);
+		sam_writeByteData(0x20);
+		sam_writeByteData(0x03);		//Set HDP	799
+		sam_writeByteData(0x21);
+		sam_writeByteData(0x01);		//Set VDP	479
+		sam_writeByteData(0xE1);
+		sam_writeByteData(0x00);
+
+		sam_writeCom(0xB4);				//HSYNC
+		sam_writeByteData(0x03);		//Set HT	928
+		sam_writeByteData(0xA0);
+		sam_writeByteData(0x00);		//Set HPS	46
+		sam_writeByteData(0x2E);
+		sam_writeByteData(0x30);		//Set HPW	48
+		sam_writeByteData(0x00);		//Set LPS	15
+		sam_writeByteData(0x0F);
+		sam_writeByteData(0x00);
+
+		sam_writeCom(0xB6);				//VSYNC
+		sam_writeByteData(0x02);		//Set VT	525
+		sam_writeByteData(0x0D);
+		sam_writeByteData(0x00);		//Set VPS	16
+		sam_writeByteData(0x10);
+		sam_writeByteData(0x10);		//Set VPW	16
+		sam_writeByteData(0x00);		//Set FPS	8
+		sam_writeByteData(0x08);
+
+		sam_writeCom(0xBA);
+		sam_writeByteData(0x05);		//GPIO[3:0] out 1
+
+		sam_writeCom(0xB8);
+		sam_writeByteData(0x07);	    //GPIO3=input, GPIO[2:0]=output
+		sam_writeByteData(0x01);		//GPIO0 normal
+
+		sam_writeCom(0x36);				//rotation
+		sam_writeByteData(0x21);		// use 0x21 or 0x22
+
+		sam_writeCom(0xF0);				//pixel data interface
+		sam_writeByteData(0x03); 
+		
+		delay_ms(1);
+
+		sam_setXY(0, 0, 799, 479);
+		sam_writeCom(0x29);		//display on
+
+		sam_writeCom(0xBE);		//set PWM for B/L
+		sam_writeByteData(0x06);
+		sam_writeByteData(0xf0);
+		sam_writeByteData(0x01);
+		sam_writeByteData(0xf0);
+		sam_writeByteData(0x00);
+		sam_writeByteData(0x00);
+
+		sam_writeCom(0xd0);
+		sam_writeByteData(0x0d);
+
+		sam_writeCom(0x2C);
+		break;
 		case SSD1289:
 			sam_writeComData(0x00,0x0001); //Oscillation Start
 			sam_writeComData(0x03,0xA8A4); //Power control (1)
@@ -1058,15 +1180,16 @@ void sam_scroll(int y){
 		sam_writeComData(0x61,0x0003);
 		sam_writeComData(0x6A, pix);
 	
-	}else if(tft_conf.tft_model == SSD1963_480){
-	
-		 sam_writeCom(0x37);
-		 sam_writeByteData(pix>>8);
-		 sam_writeByteData(pix);
+	}else if(tft_conf.tft_model == SSD1963_480 || tft_conf.tft_model == SSD1963_800){
+			 
+		sam_writeCom(0x37);
+		sam_writeByteData(pix>>8);
+		sam_writeByteData(pix);
+		 
+
 	} else if (tft_conf.tft_model == SSD1289){
 			
-		sam_writeComData(0x41, y); // screen 1 scroll
-		
+		sam_writeComData(0x41, y); // screen 1 scrolls		
 		sam_writeComData(0x42, y);// screen 2 scroll
 		
 	}	else {
@@ -1083,7 +1206,7 @@ void sam_setScrollArea(uint16_t top, uint16_t scr, uint16_t bottom){
 	
 	sam_clearCs();
 	
-	if(tft_conf.tft_model == SSD1963_480){
+	if(tft_conf.tft_model == SSD1963_480 || tft_conf.tft_model == SSD1963_800){
 
 		sam_writeCom(0x33);
 		sam_writeByteData(top>>8);
@@ -1094,6 +1217,7 @@ void sam_setScrollArea(uint16_t top, uint16_t scr, uint16_t bottom){
 		sam_writeByteData(bottom);
 
 	} else if (tft_conf.tft_model == SSD1289){
+	   
 	    if(bottom < 0){
 			bottom = 0;
 		}
@@ -1108,11 +1232,8 @@ void sam_setScrollArea(uint16_t top, uint16_t scr, uint16_t bottom){
 		sam_writeComData(0x4A,bottom); //Second window start
 		sam_writeComData(0x4B,top); //Second window end
 
-
 		sam_writeComData(0x45,(uint16_t)bottom); // Vertical RAM address start position
 		sam_writeComData(0x46,(uint16_t)top); // Vertical RAM address end position
-
-
 
 	} else {
 
@@ -1138,8 +1259,7 @@ void sam_load_raw_image_mem(int x1, int y1, int imgX, int imgY, const uint16_t *
 	
 	for (int y = 0; y < size; y++) {
 	  	 
-		 sam_writeData((img[y] >> 8), img[y]);
-	
+		 sam_writeData((img[y] >> 8), img[y]);	
 	}
 
 	sam_setCs();
