@@ -21,6 +21,7 @@
 		 case ILI9325D_16:
 		 case SSD1963_480:
 		 case SSD1963_800:
+		 case SSD1963_800_5IN:
 		 case SSD1289:
 		 REG_PORT_DIRSET1 = PORTBMASK_16;
 		 break;
@@ -46,14 +47,16 @@
 			tft_conf.page_2 = 272;
 			tft_conf.page_3 = 544;
 			break;
-		case SSD1963_800:
+		case SSD1963_800:		
+		case SSD1963_800_5IN:
 			// 1 max "SSD1963 is a display controller of 1215K byte frame buffer to support up to 864 x 480 x 24bit graphics content"
 			// The 800X480 only has one page :(
 			tft_width = 479;
 			tft_height = 799;
 			tft_conf.pages = 1;
 			tft_conf.page_1 = 0;		
-			break;
+			break;			
+		
 		default:
 			printf("TFT Width and Height not defined in sam_initTft()\n");
 			break;
@@ -112,6 +115,7 @@ void sam_setRs() {
 		case ILI9325D_16:
 		case SSD1963_480:
 		case SSD1963_800:
+		case SSD1963_800_5IN:
 		case SSD1289:
 		REG_PORT_OUTCLR1 = PORTBMASK_16;
 		break;
@@ -149,6 +153,7 @@ void sam_writeBus(uint8_t hv, uint8_t lv) {
 	   case ILI9325D_16:
 	   case SSD1963_480:
 	   case SSD1963_800:
+	   case SSD1963_800_5IN:
 	   case SSD1289:
 		   sam_write16ToTFT(hv,lv);
 		   sam_pulseBitLow();
@@ -179,6 +184,7 @@ void sam_writeData(uint8_t vh, uint8_t vl) {
 		case ILI9325D_16:
 		case SSD1963_480:
 		case SSD1963_800:
+		case SSD1963_800_5IN:
 		case SSD1289:
 		sam_write16ToTFT(vh,vl);
 		sam_pulseBitLow();
@@ -271,7 +277,7 @@ void sam_setXY(int x1, int y1, int x2, int y2)
 		sam_writeByteData(y2);
 		sam_writeCom(0x2c);
 
-	} else if(tft_conf.tft_model == SSD1963_800){
+	} else if(tft_conf.tft_model == SSD1963_800 || tft_conf.tft_model == SSD1963_800_5IN){
 		swap(int, x1, y1);
 		swap(int, x2, y2);
 		sam_writeCom(0x2a);
@@ -1030,7 +1036,7 @@ void sam_setTFTProperties() {
 			sam_writeCom(0x2C);
 		
 		break;
-		case SSD1963_800:
+		case SSD1963_800:		
 		sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
 		sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
 		sam_writeByteData(0x02);
@@ -1087,7 +1093,84 @@ void sam_setTFTProperties() {
 		sam_writeByteData(0x21);		// use 0x21 or 0x22
 
 		sam_writeCom(0xF0);				//pixel data interface
-		sam_writeByteData(0x03); 
+		sam_writeByteData(0x03);
+		
+		delay_ms(1);
+
+		sam_setXY(0, 0, 799, 479);
+		sam_writeCom(0x29);		//display on
+
+		sam_writeCom(0xBE);		//set PWM for B/L
+		sam_writeByteData(0x06);
+		sam_writeByteData(0xf0);
+		sam_writeByteData(0x01);
+		sam_writeByteData(0xf0);
+		sam_writeByteData(0x00);
+		sam_writeByteData(0x00);
+
+		sam_writeCom(0xd0);
+		sam_writeByteData(0x0d);
+
+		sam_writeCom(0x2C);
+		break;
+		case SSD1963_800_5IN:
+		sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
+		sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
+		sam_writeByteData(0x02);
+		sam_writeByteData(0x04);
+		sam_writeCom(0xE0);				// PLL enable
+		sam_writeByteData(0x01);
+		delay_ms(10);
+		sam_writeCom(0xE0);
+		sam_writeByteData(0x03);
+		delay_ms(10);
+		sam_writeCom(0x01);				// software reset
+		delay_ms(100);
+		sam_writeCom(0xE6);				//PLL setting for PCLK, depends on resolution
+		sam_writeByteData(0x04);
+		sam_writeByteData(0x93);
+		sam_writeByteData(0xE0);
+
+		sam_writeCom(0xB0);				//LCD SPECIFICATION
+		sam_writeByteData(0x20);
+		sam_writeByteData(0x00);
+		sam_writeByteData(0x03);		//Set HDP	799	
+		sam_writeByteData(0x1F);
+		sam_writeByteData(0x01);		//Set VDP	479
+		sam_writeByteData(0xDF);
+		sam_writeByteData(0x00);
+
+		sam_writeCom(0xB4);				//HSYNC
+		sam_writeByteData(0x03);		//Set HT	928
+		sam_writeByteData(0xA0);
+		sam_writeByteData(0x00);		//Set HPS	46
+		sam_writeByteData(0x2E);
+		sam_writeByteData(0x30);		//Set HPW	48
+		sam_writeByteData(0x00);		//Set LPS	15
+		sam_writeByteData(0x0F);
+		sam_writeByteData(0x00);
+
+		sam_writeCom(0xB6);				//VSYNC
+		sam_writeByteData(0x02);		//Set VT	525
+		sam_writeByteData(0x0D);
+		sam_writeByteData(0x00);		//Set VPS	16
+		sam_writeByteData(0x10);
+		sam_writeByteData(0x10);		//Set VPW	16
+		sam_writeByteData(0x00);		//Set FPS	8
+		sam_writeByteData(0x08);
+
+		sam_writeCom(0xBA);
+		sam_writeByteData(0x05);		//GPIO[3:0] out 1
+
+		sam_writeCom(0xB8);
+		sam_writeByteData(0x07);	    //GPIO3=input, GPIO[2:0]=output
+		sam_writeByteData(0x01);		//GPIO0 normal
+
+		sam_writeCom(0x36);				//rotation
+		sam_writeByteData(0x21);		// use 0x21 or 0x22
+
+		sam_writeCom(0xF0);				//pixel data interface
+		sam_writeByteData(0x03);
 		
 		delay_ms(1);
 
@@ -1180,7 +1263,7 @@ void sam_scroll(int y){
 		sam_writeComData(0x61,0x0003);
 		sam_writeComData(0x6A, pix);
 	
-	}else if(tft_conf.tft_model == SSD1963_480 || tft_conf.tft_model == SSD1963_800){
+	}else if(tft_conf.tft_model == SSD1963_480 || tft_conf.tft_model == SSD1963_800 || tft_conf.tft_model == SSD1963_800_5IN){
 			 
 		sam_writeCom(0x37);
 		sam_writeByteData(pix>>8);
@@ -1206,7 +1289,7 @@ void sam_setScrollArea(uint16_t top, uint16_t scr, uint16_t bottom){
 	
 	sam_clearCs();
 	
-	if(tft_conf.tft_model == SSD1963_480 || tft_conf.tft_model == SSD1963_800){
+	if(tft_conf.tft_model == SSD1963_480 || tft_conf.tft_model == SSD1963_800 || tft_conf.tft_model == SSD1963_800_5IN){
 
 		sam_writeCom(0x33);
 		sam_writeByteData(top>>8);

@@ -62,7 +62,8 @@ enum tft_type {
 	ILI9325D_16 = 1,
 	SSD1963_480 = 2,
 	SSD1289 = 3,
-	SSD1963_800 = 4
+	SSD1963_800 = 4,
+	SSD1963_800_5IN = 5
 };
 
 struct tft_chip{	
