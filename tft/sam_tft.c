@@ -33,6 +33,8 @@
  }
  void sam_initTft(){
      switch(tft_conf.tft_model){
+		case ILI9325D_16:	
+		case ILI9325D_8:		
 		case SSD1289:
 			tft_width = 239;
 			tft_height = 319;
@@ -135,9 +137,9 @@ void sam_write16ToTFT(uint8_t vh, uint8_t vl){
 
 void sam_pulseBitLow() {
   
-	 REG_PORT_OUT0 &= ~(WR);
-	
+	 REG_PORT_OUT0 &= ~(WR);	 
 	 REG_PORT_OUT0 |= WR; // set
+	  
 }
 
 void sam_writeBus(uint8_t hv, uint8_t lv) {
@@ -149,6 +151,7 @@ void sam_writeBus(uint8_t hv, uint8_t lv) {
 		  sam_pulseBitLow();
 		  sam_writeToTFT(lv);
 		  sam_pulseBitLow();
+		
 	   break;
 	   case ILI9325D_16:
 	   case SSD1963_480:
@@ -161,8 +164,7 @@ void sam_writeBus(uint8_t hv, uint8_t lv) {
 	   default:
 	   printf("Device not recognized\n\r");
 	   break;
-   }
-
+   }  
 	
 }
 
@@ -358,9 +360,7 @@ void sam_fillScr(uint8_t r, uint8_t g, uint8_t b)
 	cl = ((g & 28) << 3 | b >> 3);
 	sam_clearCs();	
 	sam_clrXY();
-
-	int pixels = (tft_width + 1) * (tft_height + 1);
-	
+	int pixels = (tft_width + 1) * (tft_height + 1);	
 	sam_setRs();
 	
 	for (i = 0; i < (pixels); i++)
@@ -888,11 +888,14 @@ void sam_printChar(char ch, int x, int y) {
 
 
 void sam_setTFTProperties() {
-
+	if(tft_conf.tft_model == ILI9325D_8){
+		delay_ms(10);
+	}
 	switch(tft_conf.tft_model){
 		
 		case ILI9325D_8:
 		case ILI9325D_16:
+			
 			sam_writeComData(0xE5, 0x78F0);
 			sam_writeComData(0x01, 0x0100);
 			sam_writeComData(0x02, 0x0200); // set 1 line inversion
