@@ -63,7 +63,8 @@ enum tft_type {
 	SSD1963_480 = 2,
 	SSD1289 = 3,
 	SSD1963_800 = 4,
-	SSD1963_800_5IN = 5
+	SSD1963_800_5IN = 5,
+	ILI9341 = 6
 };
 
 struct tft_chip{	
@@ -137,6 +138,6 @@ void sam_drawHLine(int x, int y, int l);
 void sam_drawVLine(int x, int y, int l);
 void sam_print(const char *st, int x, int y);
 void sam_printChar(char ch, int x, int y);
-void sam_printf(uint8_t x, uint8_t y, const char* fmt, ... );
+void sam_printf(uint16_t x, uint16_t y, const char* fmt, ... );
 
 #endif /* SAM_TFT_H_ */

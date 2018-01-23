@@ -16,6 +16,7 @@
 	 switch(tft_conf.tft_model){
 		 
 		 case ILI9325D_8:
+		 case ILI9341:
 		 REG_PORT_DIRSET1 = PORTBMASK_8;
 		 break;
 		 case ILI9325D_16:
@@ -34,7 +35,8 @@
  void sam_initTft(){
      switch(tft_conf.tft_model){
 		case ILI9325D_16:	
-		case ILI9325D_8:		
+		case ILI9325D_8:
+		case ILI9341:		
 		case SSD1289:
 			tft_width = 239;
 			tft_height = 319;
@@ -112,6 +114,7 @@ void sam_setRs() {
 	switch(tft_conf.tft_model){
 		
 		case ILI9325D_8:
+		case ILI9341:
 		REG_PORT_OUTCLR1 = PORTBMASK_8;
 		break;
 		case ILI9325D_16:
@@ -147,6 +150,7 @@ void sam_writeBus(uint8_t hv, uint8_t lv) {
    switch(tft_conf.tft_model){
 	   
 	   case ILI9325D_8:
+	   case ILI9341:
 		  sam_writeToTFT(hv);
 		  sam_pulseBitLow();
 		  sam_writeToTFT(lv);
@@ -181,18 +185,19 @@ void sam_writeData(uint8_t vh, uint8_t vl) {
 	switch(tft_conf.tft_model){
 		
 		case ILI9325D_8:
-		sam_writeBus(vh, vl);
+		case ILI9341:
+			sam_writeBus(vh, vl);
 		break;
 		case ILI9325D_16:
 		case SSD1963_480:
 		case SSD1963_800:
 		case SSD1963_800_5IN:
 		case SSD1289:
-		sam_write16ToTFT(vh,vl);
-		sam_pulseBitLow();
-		break;
+			sam_write16ToTFT(vh,vl);
+			sam_pulseBitLow();
+			break;
 		default:
-		printf("Device not recognized\n\r");
+			printf("Device not recognized\n\r");
 		break;
 	}
 }
@@ -294,7 +299,7 @@ void sam_setXY(int x1, int y1, int x2, int y2)
 		sam_writeByteData(y2);
 		sam_writeCom(0x2c);
 	
-	}	else if( tft_conf.tft_model == SSD1289){
+	}else if(tft_conf.tft_model == SSD1289){
 	
 		sam_writeComData(0x44,(x2<<8)+x1);
 		sam_writeComData(0x45,y1);
@@ -303,7 +308,20 @@ void sam_setXY(int x1, int y1, int x2, int y2)
 		sam_writeComData(0x4f,y1);
 		sam_writeCom(0x22);
 
-	}	
+	} else if(tft_conf.tft_model == ILI9341){
+
+		sam_writeCom(0x2A); //column
+		sam_writeByteData(x1>>8);
+		sam_writeByteData(x1);
+		sam_writeByteData(x2>>8);
+		sam_writeByteData(x2);
+		sam_writeCom(0x2B); //page
+		sam_writeByteData(y1>>8);
+		sam_writeByteData(y1);
+		sam_writeByteData(y2>>8);
+		sam_writeByteData(y2);
+		sam_writeCom(0x2C); //write
+	}
 
 }
 
@@ -888,7 +906,7 @@ void sam_printChar(char ch, int x, int y) {
 
 
 void sam_setTFTProperties() {
-	if(tft_conf.tft_model == ILI9325D_8){
+	if(tft_conf.tft_model == ILI9325D_8 || tft_conf.tft_model == ILI9341){
 		delay_ms(10);
 	}
 	switch(tft_conf.tft_model){
@@ -1040,158 +1058,158 @@ void sam_setTFTProperties() {
 		
 		break;
 		case SSD1963_800:		
-		sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
-		sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
-		sam_writeByteData(0x02);
-		sam_writeByteData(0x04);
-		sam_writeCom(0xE0);				// PLL enable
-		sam_writeByteData(0x01);
-		delay_ms(10);
-		sam_writeCom(0xE0);
-		sam_writeByteData(0x03);
-		delay_ms(10);
-		sam_writeCom(0x01);				// software reset
-		delay_ms(100);
-		sam_writeCom(0xE6);				//PLL setting for PCLK, depends on resolution
-		sam_writeByteData(0x04);
-		sam_writeByteData(0x93);
-		sam_writeByteData(0xE0);
+			sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
+			sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
+			sam_writeByteData(0x02);
+			sam_writeByteData(0x04);
+			sam_writeCom(0xE0);				// PLL enable
+			sam_writeByteData(0x01);
+			delay_ms(10);
+			sam_writeCom(0xE0);
+			sam_writeByteData(0x03);
+			delay_ms(10);
+			sam_writeCom(0x01);				// software reset
+			delay_ms(100);
+			sam_writeCom(0xE6);				//PLL setting for PCLK, depends on resolution
+			sam_writeByteData(0x04);
+			sam_writeByteData(0x93);
+			sam_writeByteData(0xE0);
 
-		sam_writeCom(0xB0);				//LCD SPECIFICATION
-		sam_writeByteData(0x19);
-		sam_writeByteData(0x20);
-		sam_writeByteData(0x03);		//Set HDP	799
-		sam_writeByteData(0x21);
-		sam_writeByteData(0x01);		//Set VDP	479
-		sam_writeByteData(0xE1);
-		sam_writeByteData(0x00);
+			sam_writeCom(0xB0);				//LCD SPECIFICATION
+			sam_writeByteData(0x19);
+			sam_writeByteData(0x20);
+			sam_writeByteData(0x03);		//Set HDP	799
+			sam_writeByteData(0x21);
+			sam_writeByteData(0x01);		//Set VDP	479
+			sam_writeByteData(0xE1);
+			sam_writeByteData(0x00);
 
-		sam_writeCom(0xB4);				//HSYNC
-		sam_writeByteData(0x03);		//Set HT	928
-		sam_writeByteData(0xA0);
-		sam_writeByteData(0x00);		//Set HPS	46
-		sam_writeByteData(0x2E);
-		sam_writeByteData(0x30);		//Set HPW	48
-		sam_writeByteData(0x00);		//Set LPS	15
-		sam_writeByteData(0x0F);
-		sam_writeByteData(0x00);
+			sam_writeCom(0xB4);				//HSYNC
+			sam_writeByteData(0x03);		//Set HT	928
+			sam_writeByteData(0xA0);
+			sam_writeByteData(0x00);		//Set HPS	46
+			sam_writeByteData(0x2E);
+			sam_writeByteData(0x30);		//Set HPW	48
+			sam_writeByteData(0x00);		//Set LPS	15
+			sam_writeByteData(0x0F);
+			sam_writeByteData(0x00);
 
-		sam_writeCom(0xB6);				//VSYNC
-		sam_writeByteData(0x02);		//Set VT	525
-		sam_writeByteData(0x0D);
-		sam_writeByteData(0x00);		//Set VPS	16
-		sam_writeByteData(0x10);
-		sam_writeByteData(0x10);		//Set VPW	16
-		sam_writeByteData(0x00);		//Set FPS	8
-		sam_writeByteData(0x08);
+			sam_writeCom(0xB6);				//VSYNC
+			sam_writeByteData(0x02);		//Set VT	525
+			sam_writeByteData(0x0D);
+			sam_writeByteData(0x00);		//Set VPS	16
+			sam_writeByteData(0x10);
+			sam_writeByteData(0x10);		//Set VPW	16
+			sam_writeByteData(0x00);		//Set FPS	8
+			sam_writeByteData(0x08);
 
-		sam_writeCom(0xBA);
-		sam_writeByteData(0x05);		//GPIO[3:0] out 1
+			sam_writeCom(0xBA);
+			sam_writeByteData(0x05);		//GPIO[3:0] out 1
 
-		sam_writeCom(0xB8);
-		sam_writeByteData(0x07);	    //GPIO3=input, GPIO[2:0]=output
-		sam_writeByteData(0x01);		//GPIO0 normal
+			sam_writeCom(0xB8);
+			sam_writeByteData(0x07);	    //GPIO3=input, GPIO[2:0]=output
+			sam_writeByteData(0x01);		//GPIO0 normal
 
-		sam_writeCom(0x36);				//rotation
-		sam_writeByteData(0x21);		// use 0x21 or 0x22
+			sam_writeCom(0x36);				//rotation
+			sam_writeByteData(0x21);		// use 0x21 or 0x22
 
-		sam_writeCom(0xF0);				//pixel data interface
-		sam_writeByteData(0x03);
+			sam_writeCom(0xF0);				//pixel data interface
+			sam_writeByteData(0x03);
 		
-		delay_ms(1);
+			delay_ms(1);
 
-		sam_setXY(0, 0, 799, 479);
-		sam_writeCom(0x29);		//display on
+			sam_setXY(0, 0, 799, 479);
+			sam_writeCom(0x29);		//display on
 
-		sam_writeCom(0xBE);		//set PWM for B/L
-		sam_writeByteData(0x06);
-		sam_writeByteData(0xf0);
-		sam_writeByteData(0x01);
-		sam_writeByteData(0xf0);
-		sam_writeByteData(0x00);
-		sam_writeByteData(0x00);
+			sam_writeCom(0xBE);		//set PWM for B/L
+			sam_writeByteData(0x06);
+			sam_writeByteData(0xf0);
+			sam_writeByteData(0x01);
+			sam_writeByteData(0xf0);
+			sam_writeByteData(0x00);
+			sam_writeByteData(0x00);
 
-		sam_writeCom(0xd0);
-		sam_writeByteData(0x0d);
+			sam_writeCom(0xd0);
+			sam_writeByteData(0x0d);
 
-		sam_writeCom(0x2C);
+			sam_writeCom(0x2C);
 		break;
 		case SSD1963_800_5IN:
-		sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
-		sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
-		sam_writeByteData(0x02);
-		sam_writeByteData(0x04);
-		sam_writeCom(0xE0);				// PLL enable
-		sam_writeByteData(0x01);
-		delay_ms(10);
-		sam_writeCom(0xE0);
-		sam_writeByteData(0x03);
-		delay_ms(10);
-		sam_writeCom(0x01);				// software reset
-		delay_ms(100);
-		sam_writeCom(0xE6);				//PLL setting for PCLK, depends on resolution
-		sam_writeByteData(0x04);
-		sam_writeByteData(0x93);
-		sam_writeByteData(0xE0);
+			sam_writeCom(0xE2);				//PLL multiplier, set PLL clock to 120M
+			sam_writeByteData(0x23);	    //N=0x36 for 6.5M, 0x23 for 10M crystal
+			sam_writeByteData(0x02);
+			sam_writeByteData(0x04);
+			sam_writeCom(0xE0);				// PLL enable
+			sam_writeByteData(0x01);
+			delay_ms(10);
+			sam_writeCom(0xE0);
+			sam_writeByteData(0x03);
+			delay_ms(10);
+			sam_writeCom(0x01);				// software reset
+			delay_ms(100);
+			sam_writeCom(0xE6);				//PLL setting for PCLK, depends on resolution
+			sam_writeByteData(0x04);
+			sam_writeByteData(0x93);
+			sam_writeByteData(0xE0);
 
-		sam_writeCom(0xB0);				//LCD SPECIFICATION
-		sam_writeByteData(0x20);
-		sam_writeByteData(0x00);
-		sam_writeByteData(0x03);		//Set HDP	799	
-		sam_writeByteData(0x1F);
-		sam_writeByteData(0x01);		//Set VDP	479
-		sam_writeByteData(0xDF);
-		sam_writeByteData(0x00);
+			sam_writeCom(0xB0);				//LCD SPECIFICATION
+			sam_writeByteData(0x20);
+			sam_writeByteData(0x00);
+			sam_writeByteData(0x03);		//Set HDP	799	
+			sam_writeByteData(0x1F);
+			sam_writeByteData(0x01);		//Set VDP	479
+			sam_writeByteData(0xDF);
+			sam_writeByteData(0x00);
 
-		sam_writeCom(0xB4);				//HSYNC
-		sam_writeByteData(0x03);		//Set HT	928
-		sam_writeByteData(0xA0);
-		sam_writeByteData(0x00);		//Set HPS	46
-		sam_writeByteData(0x2E);
-		sam_writeByteData(0x30);		//Set HPW	48
-		sam_writeByteData(0x00);		//Set LPS	15
-		sam_writeByteData(0x0F);
-		sam_writeByteData(0x00);
+			sam_writeCom(0xB4);				//HSYNC
+			sam_writeByteData(0x03);		//Set HT	928
+			sam_writeByteData(0xA0);
+			sam_writeByteData(0x00);		//Set HPS	46
+			sam_writeByteData(0x2E);
+			sam_writeByteData(0x30);		//Set HPW	48
+			sam_writeByteData(0x00);		//Set LPS	15
+			sam_writeByteData(0x0F);
+			sam_writeByteData(0x00);
 
-		sam_writeCom(0xB6);				//VSYNC
-		sam_writeByteData(0x02);		//Set VT	525
-		sam_writeByteData(0x0D);
-		sam_writeByteData(0x00);		//Set VPS	16
-		sam_writeByteData(0x10);
-		sam_writeByteData(0x10);		//Set VPW	16
-		sam_writeByteData(0x00);		//Set FPS	8
-		sam_writeByteData(0x08);
+			sam_writeCom(0xB6);				//VSYNC
+			sam_writeByteData(0x02);		//Set VT	525
+			sam_writeByteData(0x0D);
+			sam_writeByteData(0x00);		//Set VPS	16
+			sam_writeByteData(0x10);
+			sam_writeByteData(0x10);		//Set VPW	16
+			sam_writeByteData(0x00);		//Set FPS	8
+			sam_writeByteData(0x08);
 
-		sam_writeCom(0xBA);
-		sam_writeByteData(0x05);		//GPIO[3:0] out 1
+			sam_writeCom(0xBA);
+			sam_writeByteData(0x05);		//GPIO[3:0] out 1
 
-		sam_writeCom(0xB8);
-		sam_writeByteData(0x07);	    //GPIO3=input, GPIO[2:0]=output
-		sam_writeByteData(0x01);		//GPIO0 normal
+			sam_writeCom(0xB8);
+			sam_writeByteData(0x07);	    //GPIO3=input, GPIO[2:0]=output
+			sam_writeByteData(0x01);		//GPIO0 normal
 
-		sam_writeCom(0x36);				//rotation
-		sam_writeByteData(0x21);		// use 0x21 or 0x22
+			sam_writeCom(0x36);				//rotation
+			sam_writeByteData(0x21);		// use 0x21 or 0x22
 
-		sam_writeCom(0xF0);				//pixel data interface
-		sam_writeByteData(0x03);
+			sam_writeCom(0xF0);				//pixel data interface
+			sam_writeByteData(0x03);
 		
-		delay_ms(1);
+			delay_ms(1);
 
-		sam_setXY(0, 0, 799, 479);
-		sam_writeCom(0x29);		//display on
+			sam_setXY(0, 0, 799, 479);
+			sam_writeCom(0x29);		//display on
 
-		sam_writeCom(0xBE);		//set PWM for B/L
-		sam_writeByteData(0x06);
-		sam_writeByteData(0xf0);
-		sam_writeByteData(0x01);
-		sam_writeByteData(0xf0);
-		sam_writeByteData(0x00);
-		sam_writeByteData(0x00);
+			sam_writeCom(0xBE);		//set PWM for B/L
+			sam_writeByteData(0x06);
+			sam_writeByteData(0xf0);
+			sam_writeByteData(0x01);
+			sam_writeByteData(0xf0);
+			sam_writeByteData(0x00);
+			sam_writeByteData(0x00);
 
-		sam_writeCom(0xd0);
-		sam_writeByteData(0x0d);
+			sam_writeCom(0xd0);
+			sam_writeByteData(0x0d);
 
-		sam_writeCom(0x2C);
+			sam_writeCom(0x2C);
 		break;
 		case SSD1289:
 			sam_writeComData(0x00,0x0001); //Oscillation Start
@@ -1237,17 +1255,80 @@ void sam_setTFTProperties() {
 			sam_writeComData(0x4e,0x0000); // Set GDDRAM X address counter
 			sam_writeCom(0x22);
 		break;
+		case ILI9341:
+			sam_writeCom(0xCB);  
+			sam_writeByteData(0x39); 
+			sam_writeByteData(0x2C); 
+			sam_writeByteData(0x00); 
+			sam_writeByteData(0x34); 
+			sam_writeByteData(0x02); 
+
+			sam_writeCom(0xCF);  
+			sam_writeByteData(0x00); 
+			sam_writeByteData(0XC1); 
+			sam_writeByteData(0X30); 
+
+			sam_writeCom(0xE8);  
+			sam_writeByteData(0x85); 
+			sam_writeByteData(0x00); 
+			sam_writeByteData(0x78); 
+
+			sam_writeCom(0xEA);  
+			sam_writeByteData(0x00); 
+			sam_writeByteData(0x00); 
+ 
+			sam_writeCom(0xED);  
+			sam_writeByteData(0x64); 
+			sam_writeByteData(0x03); 
+			sam_writeByteData(0X12); 
+			sam_writeByteData(0X81); 
+
+			sam_writeCom(0xF7);  
+			sam_writeByteData(0x20); 
+  
+			sam_writeCom(0xC0);    //Power control 
+			sam_writeByteData(0x23);   //VRH[5:0] 
+ 
+			sam_writeCom(0xC1);    //Power control 
+			sam_writeByteData(0x10);   //SAP[2:0];BT[3:0] 
+
+			sam_writeCom(0xC5);    //VCM control 
+			sam_writeByteData(0x3e);   //Contrast
+			sam_writeByteData(0x28); 
+ 
+			sam_writeCom(0xC7);    //VCM control2 
+			sam_writeByteData(0x86);   //--
+ 
+			sam_writeCom(0x36);    // Memory Access Control 
+			sam_writeByteData(0x48);   
+
+			sam_writeCom(0x3A);    
+			sam_writeByteData(0x55); 
+
+			sam_writeCom(0xB1);    
+			sam_writeByteData(0x00);  
+			sam_writeByteData(0x18); 
+ 
+			sam_writeCom(0xB6);    // Display Function Control 
+			sam_writeByteData(0x08); 
+			sam_writeByteData(0x82);
+			sam_writeByteData(0x27);  
+
+			sam_writeCom(0x11);    //Exit Sleep 
+			delay_ms(120); 
+				
+			sam_writeCom(0x29);    //Display on 
+			sam_writeCom(0x2c); 
+			break;
 		default:
 		printf("TFT not Supported");
 		break;
 		
 	}
 	
-	sam_setCs();//setBit(CS);
-
+	sam_setCs();
 	sam_setColor(255, 255, 255);
 	sam_setBackColor(0, 0, 0);
-	//cfont.font = 0;
 
 }
 
@@ -1378,16 +1459,14 @@ void sam_test(int pos_x, int pos_y, int dim_x, int dim_y, const uint16_t *data){
 	sam_clrXY();
 }
 
-void sam_printf(uint8_t x, uint8_t y, const char* fmt, ... ){
+void sam_printf(uint16_t x, uint16_t y, const char* fmt, ... ){
 
 	va_list arglist;
 	char dest[MAXSTRINGSIZE];
 	va_start( arglist, fmt );
 	vsprintf(dest, fmt, arglist);
 	va_end( arglist );
-	char buff[MAXSTRINGSIZE];
-	snprintf(buff, sizeof(buff), dest, arglist);
-	sam_print(buff,x,y);
+	sam_print(dest,x,y);
 }
 
 
