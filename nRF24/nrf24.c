@@ -4,7 +4,7 @@
 volatile bool transrev_complete_spi_master = false;
 const uint8_t PRX_ADDRESS[6] = { RX_ADDR_P0, RX_ADDR_P1, RX_ADDR_P2, RX_ADDR_P3, RX_ADDR_P4, RX_ADDR_P5 };
 enum Node node = PRX; // default
-
+enum Mode current_mode = RECEIVE; // default for start network
 uint8_t ptx0[5] =	{0x78, 0x78, 0x78, 0x78, 0x78};
 uint8_t ptx1[5] =	{0xF1, 0xB4, 0xB5, 0xB6, 0xB3};
 uint8_t ptx2[5] =	{0xCD, 0xB4, 0xB5, 0xB6, 0xB3};
@@ -133,7 +133,6 @@ void nrf24_flushRx(){
 	spi_select_slave(&spi_master_instance, &slave, false);
 }
 
-
 uint8_t nrf24_txIsFull(){
 	
 	uint8_t status = nrf24_getStatus();
@@ -156,7 +155,7 @@ uint8_t nrf24_getStatus()
 	spi_select_slave(&spi_master_instance, &slave, false);	
 	return read_buffer[0];
 }
-/* SPI */
+
 static void callback_spi_master( struct spi_module *const module)
 {
 	transrev_complete_spi_master = true;
@@ -197,8 +196,7 @@ void nrf24_config(uint8_t channel, uint8_t pay_length)
 {	   
    nrf24_flushTx(); // clear out the TX Buffer
    freq_channel = channel;
-	 /* Use static payload length ... */
-   payload_len = pay_length;
+	
    
    // CRC enable, 1 byte CRC length
    nrf24_configRegister(RF_CONFIG, CONFIG_MASK); // 0x0B 0000‭ 1011‬
@@ -225,8 +223,10 @@ void nrf24_config(uint8_t channel, uint8_t pay_length)
    
    nrf24_configRegister(DYNPD,0x3F); 	// Dynamic packet length on all pipes
    
+
    // not needed for dynamic payload //
-   /*
+   /* 
+   payload_len = pay_length;
    nrf24_configRegister(RX_PW_P0, payload_len);
    nrf24_configRegister(RX_PW_P1, payload_len);
    nrf24_configRegister(RX_PW_P2, payload_len);
@@ -268,6 +268,146 @@ void nrf24_config(uint8_t channel, uint8_t pay_length)
 	nrf24_ce_state(HIGH);	
 }
 
+void nrf24_configure_star_network(uint8_t channel){
+
+   nrf24_flushTx(); // clear out the TX Buffer
+   freq_channel = channel;	
+   
+   // CRC enable, 1 byte CRC length
+   nrf24_configRegister(RF_CONFIG, CONFIG_MASK); // 0x0B 0000‭ 1011‬
+   
+   // Auto Acknowledgment - all pipes
+   nrf24_configRegister(EN_AA, 0x3F);
+  
+   nrf24_configRegister(FEATURE, 0x06); // Enable dynamic payload    
+   
+   // Enable RX addresses
+   nrf24_configRegister(EN_RXADDR,0x3F); // all pipes
+
+   // 3 byte addresses
+   nrf24_configRegister(SETUP_AW, 0x03);
+   
+   // 5 retries
+   nrf24_configRegister(SETUP_RETR, 0x25);// todo make retries global? 5 retries, 750us wait
+   
+   // Set RF channel
+   nrf24_configRegister(RF_CH,channel);
+   
+   //set speed
+   nrf24_configRegister(RF_SETUP, 0x0E); //0dBm 2Mbps
+   
+   nrf24_configRegister(DYNPD,0x3F); 	// Dynamic packet length on all pipes
+   
+   // Start listening
+   nrf24_powerUpRx();
+   nrf24_ce_state(HIGH);	
+
+   // set up lookup table
+   uint8_t nc = 1;
+   for(uint8_t i = 0; i < 50; i++){
+
+		for(uint8_t j = 0; j < 5; j++){		   
+			lookup_table[i][j] = nc++;
+			//printf("lookup_table[%d][%d] = %d\n\r", i,j, nc);
+		}
+   }
+}
+
+void nrf24_configure_star_node(uint8_t node_id, enum Mode md){
+
+	current_mode = md;
+
+	uint8_t pipeLength = 5;
+	uint8_t i;	
+	uint8_t offset = 2;
+	
+	if(md == RECEIVE){
+	
+		for(i = 0; i < pipeLength; i++){
+			ptx0[i] = node_id + 1;
+		}
+		
+		ptx1[0] = (node_id * 5) + offset;
+		offset++;
+		ptx2[0] = (node_id * 5) + offset;
+		offset++;
+		ptx3[0] = (node_id * 5) + offset;
+		offset++;
+		ptx4[0] = (node_id * 5) + offset;
+		offset++;
+		ptx5[0] = (node_id * 5) + offset;
+		uint8_t val = node_id + 1;
+		for(i = 1; i < pipeLength; i++){
+
+			ptx1[i] = val;
+			ptx2[i] = val;
+			ptx3[i] = val;
+			ptx4[i] = val;
+			ptx5[i] = val;
+		}
+
+		nrf24_setRxDataPipe(ptx0, 0);
+		nrf24_setRxDataPipe(ptx1, 1);
+		nrf24_setRxDataPipe(ptx2, 2);
+		nrf24_setRxDataPipe(ptx3, 3);
+		nrf24_setRxDataPipe(ptx4, 4);
+		nrf24_setRxDataPipe(ptx5, 5);
+	} else {
+
+		
+		// find node pipe & position
+		uint8_t position = 0;
+		uint8_t master = 0;
+
+		for(uint8_t x = 0; x < 50; x++){
+			for(uint8_t j = 0; j < 5; j++){
+				if(lookup_table[x][j] == node_id){
+					position = j ;
+					master = x + 1;
+				};
+			}
+		}
+
+
+		printf("Node %d reports to Node %d on Pipe %d\n\r", node_id, master, position);
+		// fill the pipe arrays
+		ptx1[0] = node_id;
+		ptx2[0] = node_id;
+		ptx3[0] = node_id;
+		ptx4[0] = node_id;
+		ptx5[0] = node_id;
+		
+		for(uint8_t z = 1; z< 5;z++){
+				
+				ptx1[z] = master;
+				ptx2[z] = master;
+				ptx3[z] = master;
+				ptx4[z] = master;
+				ptx5[z] = master;			
+			
+		}
+		printf("Found Position %d\n\r", position);
+		switch(position){
+			case 1:
+			nrf24_setDataPipe(ptx1);
+			break;
+			case 2:
+			nrf24_setDataPipe(ptx2);
+			break;
+			case 3:
+			nrf24_setDataPipe(ptx3);
+			break;
+			case 4:
+			nrf24_setDataPipe(ptx4);
+			break;
+			case 5:
+			nrf24_setDataPipe(ptx5);
+			break;
+		}
+
+	}	
+	
+}
 void nrf24_setRxDataPipe(uint8_t * rxAddr, uint8_t configNode){
 	
 	if(configNode < 2){
@@ -424,10 +564,10 @@ void nrf24_configure_spi_master()
 
 void nrf24_printDetails(){
 	
-	printf("STATUS:\t0x");	
+	printf("STATUS:\t\t0x");	
 	printf("%X\n\r", nrf24_getStatus());	
 	
-	printf("CONFIG:\t0x");
+	printf("CONFIG:\t\t0x");
 	nrf24_printRegister(RF_CONFIG);
 	
 	printf("RF_CH:\t\t0x");
@@ -456,7 +596,7 @@ void nrf24_printDetails(){
 	
 	
 	// end read TX
-	if(node == PRX){
+	if(current_mode == RECEIVE){
 		
 		for(int x=0; x < 6; x++){
 
@@ -558,14 +698,14 @@ void nrf24_printNodeName(enum Node nd){
 
  switch(node){	 
 	 case PRX:
-		printf("Receiver Mode\n");
+		printf("Receiver Mode\n\r");
 	 break;
 	 case PTX1:
 	 case PTX2:	
 	 case PTX3:	
 	 case PTX4:		
 	 case PTX5:		
-		printf("Sender Mode %d\n", nd);
+		printf("Sender Mode %d\n\r", nd);
 	 break;
 	 
  }

@@ -27,7 +27,8 @@ MISO		PB16
 
 uint8_t payload_len;
 uint8_t freq_channel;
-enum Node{
+
+enum Node{ // simple 1 receiver, 5 transmitters
 	
 	PRX	 = 0, // receiver
 	PTX1 = 1, // transmitter
@@ -35,6 +36,14 @@ enum Node{
 	PTX3 = 3,
 	PTX4 = 4,
 	PTX5 = 5	
+};
+
+uint8_t lookup_table[50][5];
+
+enum Mode {
+	
+	TRANSMIT = 0,
+	RECEIVE = 1,
 };
 
 struct spi_module spi_master_instance;
@@ -78,6 +87,8 @@ void	nrf24_setDataPipe(uint8_t * addr);
 void	nrf24_configure_datapipe(uint8_t reg, uint8_t * value, uint8_t len);
 void    nrf24_config(uint8_t channel, uint8_t pay_length);
 
+void    nrf24_configure_star_network(uint8_t channel);
+void    nrf24_configure_star_node(uint8_t node_id, enum Mode md);
 /* nRF24 state check functions */
 uint8_t nrf24_dataReady(void);
 uint8_t nrf24_isSending(uint8_t *ack_data);
