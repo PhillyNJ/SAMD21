@@ -1,0 +1,150 @@
+/*
+ * ataes132a_config.h
+ *
+ * Created: 6/16/2018 7:07:12 AM
+ *  Author: pvallone
+ */ 
+
+
+#ifndef ATAES132A_CONFIG_H_
+#define ATAES132A_CONFIG_H_
+#include <asf.h>
+
+//#define AESSHOWSTATUS
+
+// COMMANDS
+#define RESET			0x00
+#define NONCE			0x01
+#define RANDOM			0x02
+#define AUTH			0x03	
+#define ENCREAD			0x04
+#define ENCWRITE		0x05
+#define ENCYRPT			0x06
+#define DECRYPT			0x07
+#define KEYCREATE		0x08
+#define KEYLOAD			0x09
+#define COUNTER			0x0A
+#define CRUNCH			0x0B
+#define INFO			0x0C
+#define LOCK			0x0D
+#define LEGACY			0x0F
+#define	BLOCKREAD		0x10
+#define	SLEEP			0x11
+#define NONCECOMPUTE	0x13
+#define	AUTHCOMPUTE		0x14
+#define AUTHCHECK		0x15
+#define WRITECOMPUTE	0x16
+#define DECREAD			0x17
+#define KEYIMPORT		0x19
+#define KEYTRANSFER		0x1A
+#define BAD_PARAM		0xE2
+#define ATCA_GEN_FAIL	0xE1	//!< unspecified error
+
+//REGISTERS
+#if defined(AT88CK590_732)
+	#define AES_I2C_ADDRESS 0x20	
+#else 
+	#define AES_I2C_ADDRESS 0x50	
+#endif 
+
+#define RDSR			0xFFF0 
+#define AESWRITE		0xFE00 
+// Lock modes
+#define LOCK_SEG_SMALL_ZONE     0x00             //!< Lock command segment ID for the small zone
+#define LOCK_SEG_KEY_MEM        0x01             //!< Lock command segment ID for the key memory
+#define LOCK_SEG_CONFIG         0x02             //!< Lock command segment ID for the configuration memory
+#define LOCK_SEG_USER           0x03             //!< Lock command segment ID for a user zone
+// Key config address
+
+#define KEYCONFIG00 0xF080
+#define KEYCONFIG01 0xF084
+#define KEYCONFIG02 0xF088
+#define KEYCONFIG03 0xF08C
+#define KEYCONFIG04 0xF090
+#define KEYCONFIG05 0xF094
+#define KEYCONFIG06 0xF098
+#define KEYCONFIG07 0xF09C
+#define KEYCONFIG08 0xF0A0
+#define KEYCONFIG09 0xF0A4
+#define KEYCONFIG10 0xF0A8
+#define KEYCONFIG11 0xF0AC
+#define KEYCONFIG12 0xF0B0
+#define KEYCONFIG13 0xF0B4
+#define KEYCONFIG14 0xF0B8
+#define KEYCONFIG15 0xF0BC
+
+//Key Memory Map
+#define KEY00_ADDRESS 0xF200
+#define KEY01_ADDRESS 0xF210
+#define KEY02_ADDRESS 0xF220
+#define KEY03_ADDRESS 0xF230
+#define KEY04_ADDRESS 0xF240
+#define KEY05_ADDRESS 0xF250
+#define KEY06_ADDRESS 0xF260
+#define KEY07_ADDRESS 0xF270
+#define KEY08_ADDRESS 0xF280
+#define KEY09_ADDRESS 0xF290
+#define KEY10_ADDRESS 0xF2A0
+#define KEY11_ADDRESS 0xF2B0
+#define KEY12_ADDRESS 0xF2C0
+#define KEY13_ADDRESS 0xF2D0
+#define KEY14_ADDRESS 0xF2E0
+#define KEY15_ADDRESS 0xF2F0
+
+#define  CONFIGUSERZONE00 0xF0C0
+#define  CONFIGUSERZONE01 0xF0C4
+#define  CONFIGUSERZONE02 0xF0C8
+#define  CONFIGUSERZONE03 0xF0CC
+#define  CONFIGUSERZONE04 0xF0D0
+#define  CONFIGUSERZONE05 0xF0D4
+#define  CONFIGUSERZONE06 0xF0D8
+#define  CONFIGUSERZONE07 0xF0DC
+#define  CONFIGUSERZONE08 0xF0E0
+#define  CONFIGUSERZONE09 0xF0E4
+#define  CONFIGUSERZONE10 0xF0E8
+#define  CONFIGUSERZONE11 0xF0EC
+#define  CONFIGUSERZONE12 0xF0F0
+#define  CONFIGUSERZONE13 0xF0F4
+#define  CONFIGUSERZONE14 0xF0F8
+#define  CONFIGUSERZONE15 0xF0FC
+
+
+#define USERZONE00 0x0000
+#define USERZONE01 0x0100
+#define USERZONE02 0x0200
+#define USERZONE03 0x0300
+#define USERZONE04 0x0400
+#define USERZONE05 0x0500
+#define USERZONE06 0x0600
+#define USERZONE07 0x0700
+#define USERZONE08 0x0800
+#define USERZONE09 0x0900
+#define USERZONE10 0x0A00
+#define USERZONE11 0x0B00
+#define USERZONE12 0x0C00
+#define USERZONE13 0x0D00
+#define USERZONE14 0x0E00
+#define USERZONE15 0x0F00
+
+#define COUNTERCONF00 0xF060
+#define COUNTERCONF01 0xF062
+#define COUNTERCONF02 0xF064
+#define COUNTERCONF03 0xF066
+#define COUNTERCONF04 0xF068
+#define COUNTERCONF05 0xF06A
+#define COUNTERCONF06 0xF06C
+#define COUNTERCONF07 0xF06E
+#define COUNTERCONF08 0xF070
+#define COUNTERCONF09 0xF072
+#define COUNTERCONF10 0xF074
+#define COUNTERCONF11 0xF076
+#define COUNTERCONF12 0xF078
+#define COUNTERCONF13 0xF07A
+#define COUNTERCONF14 0xF07C
+#define COUNTERCONF15 0xF07E
+
+#define  LOCKKEYADDRESS 0xF020
+#define  LOCKCONFIGADDRESS 0xF022
+
+#define SMALL_ZONE 0xF1E0
+#endif /* ATAES132A_CONFIG_H_ */
