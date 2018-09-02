@@ -142,7 +142,7 @@
 	aes_command_pk.write_command = AESWRITE;
 	aes_command_pk.opCode = BLOCKREAD;
 	aes_command_pk.mode =	0x00;
-	aes_command_pk.param1 = keyAddress;// 0xF080; // KeyConfig[00]
+	aes_command_pk.param1 = keyAddress;
 
 	aes_command_pk.param2 = bytesToRead; // bytes to read
 	aes_command_pk.size_of_data_buffer = 0; // not need for block read
@@ -979,10 +979,13 @@ int aes_encrypt_read(uint8_t mode, uint16_t address, uint16_t count, uint8_t out
  * Lock the Key Memory: mode = 0x01
  * Lock the Configuration Memory, excluding SmallZone: mode = 0x02
  * Set the ZoneConfig[Zone].ReadOnly byte to ReadOnly: mode = 0x03
-
+ * Need to lock config first e.g. aes_lock_config_zone(0x02); 
+ *
+ * aes_lock_zone(0x02);
+ * aes_lock_zone(0x01);
  * \returns 0 on success
  */
-int aes_lock_config_zone(uint8_t mode){
+int aes_lock_zone(uint8_t mode){
 
 	ataes_transaction_status_t block_read_status;
 	aes_read_status(&block_read_status);
@@ -1007,14 +1010,154 @@ int aes_lock_config_zone(uint8_t mode){
 		}
 		printf("\n\r");
 		return ATCA_GEN_FAIL;
-	} else {
-		
-		for(uint8_t a = 2; a < aes_command_pk.rx_buffer_length + 2; a++){
-			printf("0x%02X ", block_read_status.rx_buffer[a]);
-		}
-		printf("\n\r");
-	}
+	} 
+
+	printf("** Zone Locked Successful **\n\r");
 	return SUCCESS;
+}
+
+// not working yet
+void aes_reset(void){
+	
+	// 7.22 Reset Command
+	ataes_transaction_status_t transaction_status;
+	aes_read_status(&transaction_status);
+	
+	ataes_tranaction_t aes_command_pk;
+	aes_command_pk.length = 0;
+	aes_command_pk.write_command = AESWRITE;
+	aes_command_pk.opCode = RESET;
+	aes_command_pk.mode =	0x00;
+	aes_command_pk.param1 = 0x0000;
+	aes_command_pk.param2 = 0x0000; //
+	aes_command_pk.data_buffer = 0;
+	aes_command_pk.size_of_data_buffer = 0;
+	aes_command_pk.rx_buffer_length = 0;
+	aes_write_command(&aes_command_pk, &transaction_status);
+	
+}
+int aes_info(uint16_t selector){
+	// 7.12 INFO Command
+	ataes_transaction_status_t transaction_status;
+	aes_read_status(&transaction_status);
+			
+	ataes_tranaction_t aes_command_pk;
+	aes_command_pk.length = 0;
+	aes_command_pk.write_command = AESWRITE;
+	aes_command_pk.opCode = INFO;
+	aes_command_pk.mode =	0x00;
+	aes_command_pk.param1 = selector;
+	aes_command_pk.param2 = 0x00; //
+	aes_command_pk.data_buffer = 0;
+	aes_command_pk.size_of_data_buffer = 0;
+	aes_command_pk.rx_buffer_length = 6;
+	aes_write_command(&aes_command_pk, &transaction_status);
+		
+	if(transaction_status.aes_transaction_status != SUCCESS){
+		aes_print_status(&transaction_status); // for debugging
+		return ATCA_GEN_FAIL;
+	}
+	for(uint8_t a = 2; a < aes_command_pk.rx_buffer_length - 2; a++){
+		printf("0x%02X ", transaction_status.rx_buffer[a]);
+	}
+	printf("\n\r");
+
+	return SUCCESS;
+}
+int aes_auth(uint16_t key, uint8_t mode, uint16_t usage, uint8_t *in_mac, uint8_t *out_mac){
+	
+	ataes_transaction_status_t transaction_status;
+	aes_read_status(&transaction_status);
+	
+	uint8_t len = 0;
+	if(mode == 0x02 || mode == 0x03){
+		len = 16;		
+	}
+	ataes_tranaction_t aes_command_pk;
+	aes_command_pk.length = 0;
+	aes_command_pk.write_command = AESWRITE;
+	aes_command_pk.opCode = AUTH;
+	aes_command_pk.mode =	mode;
+	aes_command_pk.param1 = key;
+	aes_command_pk.param2 = usage; // Auth usage - keyuse, writeok & readok
+	if(mode == 0x01){
+		aes_command_pk.data_buffer = in_mac;
+		aes_command_pk.size_of_data_buffer = 16; 
+	} else {
+		mode = 0x00;
+		aes_command_pk.size_of_data_buffer = 0; 
+	}	
+	
+	aes_command_pk.rx_buffer_length = len + 2; // need to test for mutual auth
+	aes_write_command(&aes_command_pk, &transaction_status);
+	
+	if(transaction_status.aes_transaction_status != SUCCESS){
+		aes_print_status(&transaction_status); // for debugging
+
+		return transaction_status.rx_buffer[1]; // TODO ADD THIS on all events
+	}
+	
+	if(in_mac == NULL){
+		memcpy(&out_mac[0], &transaction_status.rx_buffer[2], len);
+	} else {
+		// if successful, check auth status
+		printf("Auth Status:\t");
+		int ret = aes_info(INFO_AUTHSTATUS);
+		if(ret != 0){
+			printf("aes_info() failed with code %d ", ret);
+			aes_print_rc(ret);
+		}
+	}
+	
+
+	return SUCCESS;
+}
+int aes_config_write(uint16_t keyAddress, uint8_t * settings){
+	int ret = SUCCESS;
+	ataes_transaction_status_t mystatus;
+	aes_read_status(&mystatus);
+	delay_ms(10);
+	
+	uint16_t addr = keyAddress;
+	uint8_t datalen = 4; 
+	ret = aes_memory_write(addr, settings, datalen, &mystatus);
+	if(ret != 0){
+		return ret;
+	}
+	return ret;
+}
+
+int aes_counter_config_write(uint16_t keyAddress, uint8_t * settings){
+	int ret = SUCCESS;
+	ataes_transaction_status_t mystatus;
+	aes_read_status(&mystatus);		
+	uint16_t addr = keyAddress;
+	uint8_t datalen = 4;
+	ret = aes_memory_write(addr, settings, datalen, &mystatus);
+	if(ret != 0){
+		return ret;
+	}
+	return ret;
+}
+
+int aes_key_write(uint16_t keyAddress, uint8_t * settings){
+	int ret = SUCCESS;
+	ataes_transaction_status_t mystatus;
+	aes_read_status(&mystatus);
+	
+	uint16_t addr = keyAddress;
+	uint8_t datalen = 16; 
+	ret = aes_key_mem__write(addr, settings, datalen, &mystatus);
+	if(ret != 0){
+		return ret;
+	}
+
+	printf("Key was 0x%X written: ", keyAddress);
+	for(uint8_t i = 0; i < 16; i++){
+		printf("%02X ", settings[i]);
+	}
+	printf("\n\r");
+	return ret;
 }
 
  /* Helpers */ 
@@ -1053,7 +1196,7 @@ int aes_lock_config_zone(uint8_t mode){
 	 printf("Key Config 09: ");
 	 aes_config_read(KEYCONFIG09);
 	 delay_ms(5);
-	 printf("Key Config 010 ");
+	 printf("Key Config 10: ");
 	 aes_config_read(KEYCONFIG10);
 	 delay_ms(5);
 	 printf("Key Config 11: ");
@@ -1121,21 +1264,21 @@ int aes_lock_config_zone(uint8_t mode){
 	 aes_config_read(CONFIGUSERZONE15);
 	 delay_ms(1);
 	 printf("**** Counter Config ****\n\r");
-	 aes_config_read(KEYCONFIG00);
+	 aes_config_read(COUNTERCONF00);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG02);
+	 aes_config_read(COUNTERCONF02);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG04);
+	 aes_config_read(COUNTERCONF04);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG06);
+	 aes_config_read(COUNTERCONF06);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG08);
+	 aes_config_read(COUNTERCONF08);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG10);
+	 aes_config_read(COUNTERCONF10);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG12);
+	 aes_config_read(COUNTERCONF12);
 	 delay_ms(5);
-	 aes_config_read(KEYCONFIG14);
+	 aes_config_read(COUNTERCONF14);
 	 delay_ms(5);
  }
 
@@ -1199,13 +1342,13 @@ int aes_lock_config_zone(uint8_t mode){
 		 printf("DARA_MATCH");
 		 break;
 		 case 0x70:
-		 printf("UNKNOWN_ERROR");
+		 printf("LOCK_ERROR");
 		 break;
 		 case 0x80:
-		 printf("INVALID_DATA_LENGTH");
+		 printf("KEY_ERROR");
 		 break;
 		 default:
-		 printf("unknown error %d \n\r", ret_val);
+		 printf("unknown error %d \n\r", ret_value);
 		 break;
 
 	 }

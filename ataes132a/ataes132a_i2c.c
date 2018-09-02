@@ -140,6 +140,60 @@ void aes_block_read(ataes_tranaction_t * packet, ataes_transaction_status_t * st
 
 
 }
+
+int aes_key_mem__write(uint16_t address, uint8_t *data, uint8_t length, ataes_transaction_status_t *status){
+	
+	memset(aes_read_buffer, 0, sizeof aes_read_buffer);	 // clear
+	memset(aes_write_buffer, 0, sizeof aes_write_buffer);	 // clear
+	
+	uint8_t high = address >> 8;
+	uint8_t low = address & 0xFF;
+
+
+	aes_write_buffer[0]= high;
+	aes_write_buffer[1] = low;	
+
+	memcpy(&aes_write_buffer[2], data, length);
+	
+	aes_w_packet.address     = AES_I2C_ADDRESS;
+	aes_w_packet.data_length = length + 2; 
+	aes_w_packet.ten_bit_address = false;
+	aes_w_packet.data  = aes_write_buffer;
+	i2c_master_write_packet_wait(&aes_i2c_master_instance, &aes_w_packet);
+	
+	aes_rd_packet.address = AES_I2C_ADDRESS;
+	aes_rd_packet.data_length = 4;
+	aes_rd_packet.ten_bit_address = false;
+	aes_rd_packet.data = aes_read_buffer;
+
+	i2c_master_read_packet_wait(&aes_i2c_master_instance, &aes_rd_packet);
+	
+	status->aes_transaction_status = aes_read_buffer[0];
+	
+	if(status->aes_transaction_status == BAD_CALL){
+
+		printf("Status Return Error! Status = 0x%x\n\r",status->aes_transaction_status);
+		aes_parse_status(status);
+		aes_print_status(status);
+		return BAD_CALL;
+		}else {
+
+		bool error = (status->aes_transaction_status & 0x80) >> 7;
+		
+		if(error){
+
+			printf("Status Return Error! Status = 0x%x\n\r",status->aes_transaction_status);
+			aes_parse_status(status);
+			aes_print_status(status);
+			return ATCA_GEN_FAIL;
+		}
+
+	}
+	return SUCCESS;
+}
+
+
+
 int aes_memory_write(uint16_t address, uint8_t *data, uint8_t length, ataes_transaction_status_t *status){
 	
 	memset(aes_read_buffer, 0, sizeof aes_read_buffer);	 // clear
@@ -266,10 +320,10 @@ const char * aes_get_transaction_status(ataes132a_event_status_t * status){
 		return "PARSE_ERROR";		
 		case DARA_MATCH:
 		return "DARA_MATCH";		
-		case UNKNOWN_ERROR:
-		return "UNKNOWN_ERROR";		
-		case INVALID_DATA_LENGTH:
-		return "INVALID_DATA_LENGTH";		
+		case LOCK_ERROR:
+		return "LOCK_ERROR";		
+		case KEY_ERROR:
+		return "KEY_ERROR";		
 		default:
 		return "unknown error";		
 
@@ -318,11 +372,11 @@ void aes_print_status(ataes_transaction_status_t * status){
 		case DARA_MATCH:
 		printf("DARA_MATCH");
 		break;
-		case UNKNOWN_ERROR:
-		printf("UNKNOWN_ERROR");
+		case LOCK_ERROR:
+		printf("LOCK_ERROR");
 		break;
-		case INVALID_DATA_LENGTH:
-		printf("INVALID_DATA_LENGTH");
+		case KEY_ERROR:
+		printf("KEY_ERROR");
 		break;
 		default:
 		printf("unknown error %d \n\r", status->aes_transaction_status);

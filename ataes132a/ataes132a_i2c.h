@@ -25,8 +25,8 @@ typedef enum ataes132a_event_status_t {
 	MAC_ERROR = 0x40,
 	PARSE_ERROR = 0x50,
 	DARA_MATCH = 0x60,
-	UNKNOWN_ERROR = 0x70,
-	INVALID_DATA_LENGTH = 0x80,
+	LOCK_ERROR = 0x70,
+	KEY_ERROR = 0x80,
 	BAD_CALL = 0xFF
 } ataes132a_event_status_t;
 
@@ -73,6 +73,7 @@ void aes_print_status(ataes_transaction_status_t * status);
 void aes_read_status(ataes_transaction_status_t *status);
 void aes_parse_status(ataes_transaction_status_t * status);
 int aes_memory_write(uint16_t address, uint8_t *data, uint8_t length, ataes_transaction_status_t *status);
+int aes_key_mem__write(uint16_t address, uint8_t *data, uint8_t length, ataes_transaction_status_t *status);
 void aes_memory_read(uint16_t address, uint8_t *out_data, uint8_t length);
 void aes_block_read(ataes_tranaction_t * packet, ataes_transaction_status_t * status);
 const char * aes_get_transaction_status(ataes132a_event_status_t * status);

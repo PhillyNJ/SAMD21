@@ -125,6 +125,15 @@ int aes_create_pass_through_nonce(uint8_t *seed);
 int aes_create_random_number(uint8_t *random);
 int aes_read__manufacturing_id(uint8_t * mfg_id);
 
+int aes_config_write(uint16_t keyAddress, uint8_t * settings);
+int aes_counter_config_write(uint16_t keyAddress, uint8_t * settings);
+int aes_key_write(uint16_t keyAddress, uint8_t * settings);
+int aes_lock_zone(uint8_t mode);
+int aes_info(uint16_t selector);
+void aes_reset(void);
+int aes_auth(uint16_t key, uint8_t mode, uint16_t usage, uint8_t *in_mac, uint8_t *out_mac);
+
+
 int aes_block_read_memory(uint16_t address, uint8_t length, uint8_t *read_data);
 int aes_write_to_userzone(uint16_t address, uint8_t * data, uint8_t data_length);
 int aes_encrypt(uint8_t mode, uint16_t key_id, uint16_t count, uint8_t* in_data, uint8_t out_mac[16], uint8_t* out_data);
@@ -136,5 +145,7 @@ int atcah_aes132_decrypt_from(const struct atcah_aes132_decrypt_params_t* params
 int atcah_aes132_nonce(uint8_t mode, const uint8_t in_seed_val[12], uint16_t mfg_id, const uint8_t random[12], uint8_t nonce[12]);
 int aes_encrypt_write(uint8_t mode, uint16_t address, uint16_t count, const uint8_t in_mac[16], const uint8_t* in_data);
 int aes_encrypt_read(uint8_t mode, uint16_t address, uint16_t count, uint8_t out_mac[16], uint8_t* out_data);
-int aes_lock_config_zone(uint8_t mode);
+
+
+
 #endif /* ATAES132A_IMPL_H_ */
