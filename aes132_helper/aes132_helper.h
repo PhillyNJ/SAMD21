@@ -47,7 +47,7 @@
 #define AES132_HELPER_H_
 
 #include <stdint.h>
-
+#include "utility.h"
 //-------------------
 // Macro definitions
 //-------------------
@@ -145,6 +145,8 @@
 #define AES132_ZONE_CONFIG_USE_SERIAL         (1 << 6)
 #define AES132_ZONE_CONFIG_USE_SMALL          (1 << 7)
 
+// ZoneConfig Byte #2
+#define AES132_ZONE_CONFIG_VOLATILE_TRANSFER_OK          (1 << 0)
 // VolUsage Byte #0
 #define AES132_VOL_USAGE_AUTH_OK              (1 << 0)
 #define AES132_VOL_USAGE_ENCRYPT_OK_1         (1 << 1)
@@ -158,6 +160,8 @@
 // VolUsage Byte #1
 #define AES132_VOL_USAGE_WRITE_COMPUTE        (1 << 0)
 #define AES132_VOL_USAGE_DEC_READ             (1 << 1)
+
+
 
 // AuthUsage
 #define AES132_AUTH_USAGE_READ_OK             (1 << 0)
@@ -173,6 +177,13 @@
 #define AES132_INFO_AUTH_STATUS				0x0005
 #define AES132_INFO_DEVICENUMBER			0x0006
 #define AES132_INFO_CHIPSTATE				0x000C
+
+// Locks
+#define AES132_LOCK_SMALLZONE	(0x00)
+#define AES132_LOCK_KEYMEMORY	(0x01)
+#define AES132_LOCK_CONFIG		(0x02)
+#define AES132_LOCK_ZONECONFIG	(0x03)
+
 //----------------------
 // Structures for nonce
 //----------------------
@@ -399,6 +410,7 @@ struct aes132h_in_out {
 	 uint8_t manufacturing_id[2];
 	 uint8_t i2c_address;
 	 uint8_t chip_config;
+	 uint8_t small_zone[4];
  };
 
 
@@ -412,5 +424,10 @@ uint8_t aes132h_encode_counter_field(uint32_t count_integer, uint8_t *counter_fi
 uint8_t aes132h_build_auth_block(struct aes132h_build_auth_block_in_out *param);
 uint8_t aes132h_mac_compute_encrypt(struct aes132h_in_out *param);
 uint8_t aes132h_mac_check_decrypt(struct aes132h_in_out *param);
+
+void aes_print_buffer(uint8_t *buff, uint8_t size);
+void aes_print_rc(int ret_value);
+void aes132_print_zone_addresses(void);
+
 
 #endif //AES132_HELPER_H_

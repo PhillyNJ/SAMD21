@@ -107,7 +107,3 @@ void aes132_debug_readwrite_puthex(uint8_t count, uint8_t return_code, uint8_t *
  */
 uint8_t parse_command(uint8_t serial_data);
 
-
-void aes_print_buffer(uint8_t *buff, uint8_t size);
-void aes_print_rc(int ret_value);
-void aes132_print_zone_addresses(void);
