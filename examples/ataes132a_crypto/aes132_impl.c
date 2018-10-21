@@ -63,19 +63,19 @@
 
 	printf("Serial Number:\t\t");
 	for(uint8_t i = 0; i < 8;i++){
-		printf("0x%02X ", mydetails.serial_number[i]);
+		printf("0x%02X ", myDetails.serial_number[i]);
 	}
-	printf("\n\rLockKeys:\t\t0x%02X %s\n\r", mydetails.lock_keys, mydetails.lock_keys != 0x55 ? "[Locked]" : "[Unlocked]");
-	printf("LockSmall:\t\t0x%02X %s\n\r", mydetails.lock_small, mydetails.lock_small != 0x55 ? "[Locked]" : "[Unlocked]");
-	printf("LockConfig:\t\t0x%02X %s\n\r", mydetails.lock_config, mydetails.lock_config != 0x55 ? "[Locked]" : "[Unlocked]");
-	printf("Manufacturing Id:\t0x%02X%02X\n\r", mydetails.manufacturing_id[0], mydetails.manufacturing_id[1]);
-	printf("Small Zone[0:3]:\t0x%02X 0x%02X 0x%02X 0x%02X\n\r", mydetails.small_zone[0], mydetails.small_zone[1],mydetails.small_zone[2], mydetails.small_zone[3]);
+	printf("\n\rLockKeys:\t\t0x%02X %s\n\r", myDetails.lock_keys, myDetails.lock_keys != 0x55 ? "[Locked]" : "[Unlocked]");
+	printf("LockSmall:\t\t0x%02X %s\n\r", myDetails.lock_small, myDetails.lock_small != 0x55 ? "[Locked]" : "[Unlocked]");
+	printf("LockConfig:\t\t0x%02X %s\n\r", myDetails.lock_config, myDetails.lock_config != 0x55 ? "[Locked]" : "[Unlocked]");
+	printf("Manufacturing Id:\t0x%02X%02X\n\r", myDetails.manufacturing_id[0], myDetails.manufacturing_id[1]);
+	printf("Small Zone[0:3]:\t0x%02X 0x%02X 0x%02X 0x%02X\n\r", myDetails.small_zone[0], myDetails.small_zone[1],myDetails.small_zone[2], myDetails.small_zone[3]);
 	printf("ChipConfig:\t\t0x%02X\n\r", details->chip_config);
  }
 
  /* 
 	Prints the command block and receive data 
-	Paramp[in] - Return code for parsing 
+	Param[in] - Return code for parsing 
  */
 void aes132_print_command_block(int ret_code)
 {
@@ -162,13 +162,16 @@ void aes132_print_command_block(int ret_code)
 	 if (ret_code != AES132_DEVICE_RETCODE_SUCCESS) return;
  }
 
- void aes132_lock_zone(uint8_t mode){
+ uint8_t aes132_lock_zone(uint8_t mode){
   
 	uint8_t ret_code;	
 	//AES132_OPCODE_LOCK
 	ret_code = aes132m_execute(AES132_OPCODE_LOCK, mode, 0,0,0,NULL,0,NULL,0,NULL,0,NULL, g_tx_buffer,g_rx_buffer);
+	
 	aes132_print_command_block(ret_code);
-	if (ret_code != AES132_DEVICE_RETCODE_SUCCESS) return;
+	return ret_code;
+	
+ 
  }
 //Personalization if the ATAES132a device
 void aes132_personalize(void)

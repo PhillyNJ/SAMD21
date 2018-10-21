@@ -144,7 +144,6 @@
 #define AES132_ZONE_CONFIG_WRITE_MODE_5       (1 << 5)
 #define AES132_ZONE_CONFIG_USE_SERIAL         (1 << 6)
 #define AES132_ZONE_CONFIG_USE_SMALL          (1 << 7)
-
 // ZoneConfig Byte #2
 #define AES132_ZONE_CONFIG_VOLATILE_TRANSFER_OK          (1 << 0)
 // VolUsage Byte #0
@@ -160,8 +159,6 @@
 // VolUsage Byte #1
 #define AES132_VOL_USAGE_WRITE_COMPUTE        (1 << 0)
 #define AES132_VOL_USAGE_DEC_READ             (1 << 1)
-
-
 
 // AuthUsage
 #define AES132_AUTH_USAGE_READ_OK             (1 << 0)

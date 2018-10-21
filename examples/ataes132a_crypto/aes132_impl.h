@@ -1,7 +1,7 @@
 /*
  * aes132_impl.h
  *
- * Created: 9/15/2018 7:11:10 AM
+ * Created: 9/21/2018 7:16:19 AM
  *  Author: pvallone
  */ 
 
@@ -17,7 +17,7 @@
 #include "aes132_comm.h"
 #include "aes132_comm_marshaling.h"
 #include "keys.h"
-struct aes132a_details mydetails;
+struct aes132a_details myDetails;
 
 uint8_t g_tx_buffer[AES132_COMMAND_SIZE_MAX];
 uint8_t g_rx_buffer[AES132_RESPONSE_SIZE_MAX];
@@ -33,7 +33,7 @@ void aes132_personalize(void);
 void aes132_read_configuration(void);
 void aes132_read_config(uint16_t addr);
 void aes132_read_counter_config(uint16_t addr);
-void aes132_lock_zone(uint8_t mode);
+uint8_t aes132_lock_zone(uint8_t mode);
 void aes132_nonce(void);
 int aes132_key_create(uint8_t *newKey);
 void aes132_keyload_to_key_memory(uint16_t childKeyID, uint8_t *parentKey, uint8_t *newKey);
@@ -55,4 +55,6 @@ void aes132_read_serial(uint8_t *sn);
 void aes132_decrypt_read(void);
 void aes132_write_user_zone_04(void);
 void aes132_crunch(uint16_t count, uint8_t *outResult);
+
+
 #endif /* AES132_IMPL_H_ */
