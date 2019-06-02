@@ -51,8 +51,7 @@
 	 details->i2c_address = data[0];
 	 details->check_mac_config = data[1];
 	 details->otp_mode = data[2];
-	 details->select_mode = data[3];
-	 
+	 details->select_mode = data[3];	 
 	 
 	 memcpy(&details->serial_number[8], &data, 1);
 	 // get lock and lockConfig
@@ -420,6 +419,8 @@ uint8_t sha204_read_otp_zone(uint8_t len, uint8_t block, uint8_t *read_data){
 }
 /** \brief Creates the diverse keys for the demo. The keys are diversified keys, root key to the ATSHA204a
  *	keys 0-9, 12-15 are diversified. The root key is saved to slot 10 & 11 for demo
+ *  Key 5 is initially derived from the root, however, running the ATCA_DERIVE_KEY against this slot, will 
+	change the key because the SlotConfig<15> bit = 1. The key is no derived from the parent key.  
  * \param[in] root   pointer to the root key 
  * \return ATCA_SUCCESS on success, otherwise an error code.
  */
@@ -1009,12 +1010,17 @@ uint8_t sha204_random_mac_challenge(uint8_t slot, uint8_t mode, uint8_t *challen
 	return memcmp ( digest, sw_digest, sizeof(digest) );
 }
 
-/*
- This example checks the mac per the app note. The mac must be run against the diverse key slot,
- in this case slot 00. The mac is a sha256 hash against the diverse key. In the examples the diverse is in 
- slot 0 
 
-*/
+/** \brief					This example checks the mac per the app note (Atmel-8841-CryptoAuth-ATSHA204-Unique-Keys-ApplicationNote.pdf). 
+							Both the client and host must be same. Slot 7 is derived from the root and written to slot 6 & 7. See sha204_write_keys().  
+							
+							This example simulates host/client where the key in host slot x, is the same as the key in client slot x
+							In this case we use the slots 6 (client) & 7 (host) because they are same. 	
+							
+ *  \param[in] key_id		Key id for host 
+ *  \param[in] mac_key		Key id for mac calculation (client) 
+ *  \return					ATCA_SUCCESS on success, otherwise an error code.
+ */
 uint8_t sha204_checkmac_example(uint16_t key_id,uint16_t mac_key){
 	
 	status = ATCA_SUCCESS;
@@ -1086,10 +1092,17 @@ uint8_t sha204_checkmac_example(uint16_t key_id,uint16_t mac_key){
 	return status;
 }
 
-// (Hardware)
-// The device combines the current value of a key with the nonce stored in TempKey using SHA-256 and
-// places the result into the target key slot. SlotConfig<TargetKey>.Bit13 must be set or DeriveKey returns
-// an error.
+
+/** \brief					DeriveKey Example - The method combines the current value of a key with the nonce stored in TempKey using SHA-256 and
+							places the result into the target key slot. SlotConfig<TargetKey>.Bit13 must be set or DeriveKey returns
+							an error.
+ *  \param[in] target		target slot for derived key
+ *  \param[in] mac			pointer to mac - can be null
+ *  \param[in] padding		padding used to create the key
+ 
+ *  \return					ATCA_SUCCESS on success, otherwise an error code.
+ */
+
 uint8_t sha204_diverse_key_example(uint16_t target, uint8_t *mac, uint8_t padding){
 	
 	status = ATCA_GEN_FAIL;
@@ -1125,7 +1138,13 @@ uint8_t sha204_diverse_key_example(uint16_t target, uint8_t *mac, uint8_t paddin
 
 	return status;
 }
-
+/** \brief					Compares 2 digests 
+ *  \param[in] dig1			pointer to digest 1
+ *  \param[in] dig2			pointer to digest 2
+ *  \param[in] len			length of digest to compare
+ 
+ *  \return					ATCA_SUCCESS on success, otherwise an error code.
+ */
 void sha204_compare_digests(uint8_t *dig1,uint8_t *dig2, int len){
 	
 	// compare hashes
@@ -1138,8 +1157,14 @@ void sha204_compare_digests(uint8_t *dig1,uint8_t *dig2, int len){
 	}
 
 }
-
-
+/** \brief					Validates all the keys written to the device with the checkmac command
+							Keys 0-9, 12-15 are diversified. The root key is saved to slot 10 & 11 for demo
+							Key 5 is initially derived from the root, however, running the ATCA_DERIVE_KEY against this slot, will
+							change the key because the SlotConfig<15> bit = 1. The key is no derived from the parent key.
+ *  \param[in] root			pointer to the root key
+ 
+ *  \return					ATCA_SUCCESS on success, otherwise an error code.
+ */
 uint8_t sha204_validate_keys(uint8_t *root){
 		
 	uint16_t key_id = 0x0000;
@@ -1237,9 +1262,7 @@ uint8_t sha204_validate_keys(uint8_t *root){
 				return status;
 			}
 			break;
-
-		}
-				
+		}				
 		status = atcab_random(challenge);
 		if(status != ATCA_SUCCESS){
 			printf("Unable to calculate random challenge:");
