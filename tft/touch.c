@@ -55,15 +55,19 @@
  }
  uint8_t read_xy(void){
 
-	 int z1, z2, tmpH, tmpL;
-	 float tempX1 = 0.132706656f;
-	 float tempY1 = 0.208116544f;
-	 int z1Range = 3617;
-	 int z2Range = 3844;
-	 int z1_low = 282;
-	 int z2_low = 128;
+	 int z1, z2, tmpH, tmpL, z1Range, z2Range;
+	 
+	 float tempX1 = 0.0f;
+	 float tempY1 = 0.0f;
+	 
 	 int z_threshold = 3800;
+	 
+	 z1Range = Z1HIGH - Z1LOW;
+	 z2Range = Z2HIGH - Z2LOW;
 
+	 tempX1 = (((float)240) / z1Range);//todo fix
+	 tempY1 = (((float)320) / z2Range);
+	 
 	 send_spi(0xB1, 0,0);
 	 tmpH = (read_buffer[1] << 5);
 	 tmpL = (read_buffer[2] >> 3);
@@ -73,25 +77,26 @@
 	 tmpH = (read_buffer[1] << 5);
 	 tmpL = (read_buffer[2] >> 3);
 	 z2 = tmpH | tmpL;
- 
-	 if((z2 - z1) < z_threshold){
 	 
+	 if((z2 - z1) < ZTHRESHOLD){
+		 
 		 send_spi(0xD1, 0,0);
 		 tmpH = (read_buffer[1] << 5);
 		 tmpL = (read_buffer[2] >> 3);
 		 tx =  tmpH | tmpL;
-	 
+		 
 		 send_spi(0x91, 0,0);
 		 tmpH = (read_buffer[1] << 5);
 		 tmpL = (read_buffer[2] >> 3);
-		 ty =  tmpH | tmpL;		 		
-	 
-		 touch_x = abs(tempX1 * (float)(tx - z1_low));
-		 touch_y = abs(tempY1 * (float)(ty - z2_low));
+		 ty =  tmpH | tmpL;
+		 
+		 touch_x = abs(tempX1 * (float)(tx - Z1LOW));
+		 touch_y = abs(tempY1 * (float)(ty - Z2LOW));
 
+		 printf("\n\rX: %d y:%d\n\r", touch_y, touch_x);
 		 return 1;
-	 
+		 
 	 }
-	return 0;
+	 return 0;
 
  }

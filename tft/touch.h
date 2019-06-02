@@ -9,6 +9,12 @@
 #ifndef TOUCH_H_
 #define TOUCH_H_
 
+#define Z1LOW	275
+#define Z1HIGH 3852
+#define Z2LOW	329
+#define Z2HIGH	3803
+#define ZTHRESHOLD 3800 //Controls sensitivity. lower this value if you get random input values
+
 #define BUF_LENGTH 3
 #define BUF_LENGTH_READ 1
 #define SLAVE_SELECT_PIN PIN_PA17 // PA17
