@@ -20,6 +20,8 @@ const char *otp_data_2 = "More data The OTP Zone";
 uint8_t serial_data;
 uint8_t input;
 uint8_t slot;
+uint8_t host;
+uint8_t client;
 uint8_t mode;
 uint8_t block;
 uint8_t offset;

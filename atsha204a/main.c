@@ -1043,16 +1043,26 @@ void sha204_app_command_dispatch(void)
 			break;
 			
 			case 0xB5:
+				
 				slot = 7;
 				printf("Slot %d\n\r", slot);
 				status = sha204_validate_key_gendig(root, slot, slot,  padding);
 				if (status != ATCA_SUCCESS)	 { printf("GenDig/CheckMac Failed:"); sha204_parser_rc(status); return;}
 				printf("Success. Key checked with GenDig/CheckMac.\n\r");	
+				
 				slot = 12;
 				printf("Slot %d\n\r", slot);
 				status = sha204_validate_key_gendig(root, slot, slot,  padding);
 				if (status != ATCA_SUCCESS)	 { printf("GenDig/CheckMac Failed:"); sha204_parser_rc(status); return;}
-				printf("Success. Key checked with GenDig/CheckMac.\n\r");			
+				printf("Success. Key checked with GenDig/CheckMac.\n\r");	
+				
+				host = 6;
+				client = 7;
+								
+				printf("Slot %d\n\r", slot);
+				status = sha204_validate_key_gendig(root, client, host, padding);
+				if (status != ATCA_SUCCESS)	 { printf("GenDig/CheckMac Failed:"); sha204_parser_rc(status); return;}
+				printf("Success. Key checked with GenDig/CheckMac.\n\r");	
 			break;
 	}			
 }
