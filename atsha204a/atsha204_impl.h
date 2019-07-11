@@ -35,7 +35,7 @@ uint8_t sha204_diverse_key_example(uint16_t target, uint8_t *mac, uint8_t paddin
 void sha204_compare_digests(uint8_t *dig1,uint8_t *dig2, int len);
 uint8_t sha204_validate_keys(uint8_t *root);
 uint8_t sha204_calculated_rolled_key(uint8_t *root, uint8_t key_id, uint8_t roll_count, uint8_t *derived_key);
-uint8_t sha204_get_slot_config(uint8_t slot_id, uint8_t* config_data);
+uint8_t sha204_get_slot_config(uint8_t* config_data);
 uint8_t sha204_key_roll_example_validation(uint8_t *rootkey);
 uint8_t sha204_validate_derived_key(uint8_t *root, uint8_t key_id, uint8_t padding, uint8_t *derived_key);
 uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_key, uint8_t padding);

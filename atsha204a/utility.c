@@ -125,7 +125,7 @@ void printf_puthex_16 (uint16_t data)
 uint8_t parse_command(uint8_t serial_data)
 {
 	static unsigned char parser_state, nibble_value;
-	
+	printf("%c", serial_data);
 	switch (parser_state) {
 		case 0:
 			g_packet_block_index = 0;

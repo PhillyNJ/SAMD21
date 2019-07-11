@@ -12,3 +12,10 @@ void print_buffer(uint8_t *buff, uint8_t size){
 	 }
 	 printf("\n\r");
 }
+
+void print_raw_buffer(uint8_t *buff, uint8_t size){
+	for(uint8_t i = 0; i < size;i++){
+		printf("%02X ", buff[i]);
+	}
+	printf("\n\r");
+}

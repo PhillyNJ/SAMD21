@@ -25,7 +25,32 @@ uint8_t client;
 uint8_t mode;
 uint8_t block;
 uint8_t offset;
+uint8_t idx;
+uint8_t parent_key_id;
+uint8_t write_key_id;
+
+char cmd[10];
+int rc;
+
+uint8_t write_config_0;
+uint8_t write_config_1;
+uint8_t write_config_2;
+uint8_t write_config_3;
+uint8_t write_config_4;
+uint8_t write_config_5;
+uint8_t write_config_6;
+uint8_t write_config_7;
+uint8_t write_config_8;
+uint8_t write_config_9;
+uint8_t write_config_10;
+uint8_t write_config_11;
+uint8_t write_config_12;
+uint8_t write_config_13;
+uint8_t write_config_14;
+uint8_t write_config_15;
+
 uint8_t write_data[ATCA_KEY_SIZE];
+uint8_t config_data[32];
 uint8_t parent_key[ATCA_KEY_SIZE];
 uint8_t random_data[OUTNONCE_SIZE];
 uint8_t digest[ATCA_SHA_DIGEST_SIZE];

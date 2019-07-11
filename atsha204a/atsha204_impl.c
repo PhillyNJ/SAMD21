@@ -13,41 +13,25 @@
 	 uint8_t data[4];
 	 memset(&data, 0, sizeof(data));
 	 volatile uint8_t ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	 if(ret != ATCA_SUCCESS){
-		 sha204_parser_rc(ret);
-		 return ret;
-	 }
+	 RET_STATUS(status);
 	 memcpy(&details->serial_number[0], &data, 4);
 	 //sha204_print_buffer(data, 4);
 	 offset = 1;
 	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	 if(ret != ATCA_SUCCESS){
-		 sha204_parser_rc(ret);
-		 return ret;
-	 }
+	 RET_STATUS(status);
 	 memcpy(&details->rev_num[0], &data, 4);
 	 offset = 2;
 	 
 	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	 if(ret != ATCA_SUCCESS){
-		 sha204_parser_rc(ret);
-		 return ret;
-	 }
+	 RET_STATUS(status);
 	 memcpy(&details->serial_number[4], &data, 4);
 	 offset = 3;
 	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	 if(ret != ATCA_SUCCESS){
-		 sha204_parser_rc(ret);
-		 return ret;
-	 }
+	 RET_STATUS(status);
 	 // get CheckMacConfig and i2c setting	
 	 offset = 4;
 	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	 if(ret != ATCA_SUCCESS){
-		  sha204_parser_rc(ret);
-		  return ret;
-	  }
-	  
+	 RET_STATUS(status);	  
 	 details->i2c_address = data[0];
 	 details->check_mac_config = data[1];
 	 details->otp_mode = data[2];
@@ -58,10 +42,7 @@
 	 block = 2;
 	 offset = 5;
 	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	 if(ret != ATCA_SUCCESS){
-		 sha204_parser_rc(ret);
-		 return ret;
-	 }
+	 RET_STATUS(status);
 	 details->lock_value = data[2];
 	 details->lock_config = data[3];
 
@@ -217,7 +198,7 @@
 	 write_key_10, write_key_9,write_key_8,is_secret,encrypt_read,limited_use, check_only,
 	 read_key_3,read_key_2,read_key_1,read_key_0, lower, hi);
 	 
-	 printf("\tWrite Key: %d Read Key: %d Secret: %s Encrypt Read: %s", (lower & 0x0F), (hi >> 4), (is_secret == 1) ? "Yes" : "No", (encrypt_read == 1 && is_secret == 1) ? "Yes" : "No");
+	 printf("\tWrite Key: %d Read Key: %d Secret: %s Encrypt Read: %s Encrypt Write: %s", (lower & 0x0F), (hi >> 4), (is_secret == 1) ? "Yes" : "No", (encrypt_read == 1 && is_secret == 1) ? "Yes" : "No", write_config_14 == 1 ? "Yes" : "No");
 	 printf("\n\r");
 };
  
@@ -241,10 +222,7 @@ uint8_t sha204_read_config(){
 	for(offset = 5; offset < 8; offset++){
 
 		status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-		if(status != ATCA_SUCCESS){
-			sha204_parser_rc(status);
-			return status;
-		}
+		RET_STATUS(status);
 		data_display[0] = data[1];
 		data_display[1] = data[0];				
 		data_display[2] = data[3];
@@ -259,10 +237,7 @@ uint8_t sha204_read_config(){
 	block = 1;
 	for(offset = 0; offset < 5; offset++){	
 		status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-		if(status != ATCA_SUCCESS){
-			sha204_parser_rc(status);
-			return status;
-		}
+		RET_STATUS(status);
 		data_display[0] = data[1];
 		data_display[1] = data[0];
 		data_display[2] = data[3];
@@ -287,10 +262,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0xF2;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	// Slots 2 & 3
 	offset = 6;
@@ -300,10 +272,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0xF2;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	// Slots 4 & 5
 	offset = 7;
@@ -313,10 +282,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0xB2;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	// Slots 6 & 7
 	block = 1;
@@ -327,10 +293,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0x3B;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 	// Slots 8 & 9
 	offset = 1;
 	data[0] = 0xCA;
@@ -339,10 +302,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0x3B;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	// Slots 10 & 11
 	offset = 2;
@@ -352,10 +312,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0x8F;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	// Slots 12 & 13
 	offset = 3;
@@ -365,10 +322,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0x4A;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	// Slots 14 & 15
 	offset = 4;
@@ -378,10 +332,7 @@ uint8_t sha204_personalize(void){
 	data[3] = 0x4D;
 	// write to each slot config
 	status = atcab_write_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-	if(status != ATCA_SUCCESS){
-		printf("Error: 0x%02x\n\r", status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	return ATCA_SUCCESS;
 }
@@ -408,12 +359,7 @@ uint8_t sha204_read_otp_zone(uint8_t len, uint8_t block, uint8_t *read_data){
 	}
 
 	status = atcab_read_zone(ATCA_ZONE_OTP, 0, block, 0, read_data, len);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to read from OTP: \n\r");
-		return status;
-	}
+	RET_STATUS(status);
 
 	return status;
 }
@@ -433,10 +379,7 @@ uint8_t sha204_write_keys(uint8_t *root){
 		
 	// write keys (slots)
 	status = sha204_get_details(&myDetails);
-	if(status != ATCA_SUCCESS){
-		printf("Unable to read device: ");
-		return status;
-	}
+	RET_STATUS(status);
 	if(myDetails.lock_config != 0x00){
 		printf("Lock Config Must be Locked to perform function\n\r");
 		return status;
@@ -447,44 +390,24 @@ uint8_t sha204_write_keys(uint8_t *root){
 	for(uint8_t i = 0; i < 6; i++){
 		
 		status= sha204_create_diverse_key(root, i, data, padding);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to calculate key ");
-			return status;
-		}
+		RET_STATUS(status);
 		status = atcab_write_zone(ATCA_ZONE_DATA, i, 0, 0, data, 32);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to write to slot %d: ", i);
-			return status;
-		}
+		RET_STATUS(status);
 		printf("Diverse Key 0x%02X: ", i);
 		print_buffer(data, 32);
 	}
 	
 	// create the key for slot 7  (host and save in slot 6 client)
 	status= sha204_create_diverse_key(root, 7, data, padding);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to calculate key 7\n\r");
-		return status;
-	}
+	RET_STATUS(status);
 	//save to slot 7
 	status = atcab_write_zone(ATCA_ZONE_DATA, 7, 0, 0, data, 32);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to write to slot 7\n\r");
-		return status;
-	}
+	RET_STATUS(status);
 	printf("Diverse Key 0x%02X: ", 7);
 	print_buffer(data, 32);
 	// save the key in slot 6 client
 	status = atcab_write_zone(ATCA_ZONE_DATA, 6, 0, 0, data, 32);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to write to slot 6\n\r ");
-		return status;
-	}
+	RET_STATUS(status);
 	printf("Diverse Key 0x%02X: ", 6);
 	print_buffer(data, 32);
 	
@@ -492,17 +415,9 @@ uint8_t sha204_write_keys(uint8_t *root){
 	for(uint8_t i = 8; i < 10; i++){
 		
 		status= sha204_create_diverse_key(root, i, data, padding);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to calculate key \n\r");
-			return status;
-		}
+		RET_STATUS(status);
 		status = atcab_write_zone(ATCA_ZONE_DATA, i, 0, 0, data, 32);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to write to slot %d:\n\r ", i);
-			return status;
-		}
+		RET_STATUS(status);
 		printf("Diverse Key 0x%02X: ", i);
 		print_buffer(data, 32);
 	}
@@ -511,38 +426,21 @@ uint8_t sha204_write_keys(uint8_t *root){
 	for(uint8_t i = 12; i < 16; i++){
 			
 		status= sha204_create_diverse_key(root, i, data, padding);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to calculate key %d\n\r", i);
-			return status;
-		}
+		RET_STATUS(status);
 		status = atcab_write_zone(ATCA_ZONE_DATA, i, 0, 0, data, 32);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to write to slot %d:\n\r ", i);
-			return status;
-		}
+		RET_STATUS(status);
 		printf("Diverse Key 0x%02X: ", i);			
 		print_buffer(data, 32);
 	}
 	
 	 //  write the root key for demo - Slot 10
 	 status = atcab_write_zone(ATCA_ZONE_DATA, 10, 0, 0, root, ATCA_KEY_SIZE);
-	 if (status != ATCA_SUCCESS)
-	 {
-		 printf("Unable to write to slot 10\n\r ");
-		 return status;
-	 }
+	 RET_STATUS(status);
 	 printf("Root Key written to slot 10\n\r");
 	 
 	 status = atcab_write_zone(ATCA_ZONE_DATA, 11, 0, 0, root, ATCA_KEY_SIZE);
-	 if (status != ATCA_SUCCESS)
-	 {
-		 printf("Unable to write to slot 11: ");
-		 return status;
-	 }
-	 printf("Root Key written to slot 11\n\r");
-	 
+	 RET_STATUS(status);
+	 printf("Root Key written to slot 11\n\r"); 
 	
 	return ATCA_SUCCESS;
 }
@@ -566,11 +464,7 @@ uint8_t sha204_create_diverse_key(uint8_t *rootkey, uint16_t target, uint8_t *ou
 	data[33] = CHECKMAC_MODE_SOURCE_FLAG_MATCH; // param 1 mode - The value of this bit must match the value in TempKey.SourceFlag or the command returns an error.
 
 	status = atcab_read_serial_number(sn);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 	data[34] = (uint8_t)target; // param 2 (target key)
 	data[35] = 0x00;			// param 2
 
@@ -582,11 +476,7 @@ uint8_t sha204_create_diverse_key(uint8_t *rootkey, uint16_t target, uint8_t *ou
 	memset(&data[73], padding, 24);
 
 	status = atcac_sw_sha2_256(data, sizeof(data), diverse_key);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 	memcpy(&outkey[0], &diverse_key[0], sizeof(diverse_key));
 
 	return status;
@@ -609,12 +499,7 @@ uint8_t sha204_write_otp_zone(uint8_t *data, uint8_t len, uint8_t block){
 	}
 
 	status = atcab_write_zone(ATCA_ZONE_OTP, 0, block, 0, data, len);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to write to OTP: \n\r");
-		return status;
-	}
+	RET_STATUS(status);
 
 	return status;
 }
@@ -651,20 +536,10 @@ uint8_t sha204_hmac_challenge(uint16_t slot, uint8_t *key){
 	size_t i = 0;
 
 	status = atcab_read_serial_number(sn);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to read serial number: \n\r");
-		return status;
-	}
+	RET_STATUS(status);
 
 	status = atcab_read_bytes_zone(ATCA_ZONE_OTP, 0, 0, otp, ATCA_OTP_SIZE);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to read atcab_read_bytes_zone: \n\r");
-		return status;
-	}
+	RET_STATUS(status);
 
 	for (i = 0; i < sizeof(modes) / sizeof(modes[0]); i++)
 	{
@@ -678,20 +553,10 @@ uint8_t sha204_hmac_challenge(uint16_t slot, uint8_t *key){
 		nonce_params.temp_key = &temp_key;
 		nonce_params.rand_out = rand_out;
 		status = atcab_nonce_rand(nonce_params.num_in, rand_out);
-		if (status != ATCA_SUCCESS)
-		{
-			sha204_parser_rc(status);
-			printf("Unable to create random nonce: \n\r");
-			return status;
-		}
+		RET_STATUS(status);
 
 		status = atcah_nonce(&nonce_params);
-		if (status != ATCA_SUCCESS)
-		{
-			sha204_parser_rc(status);
-			printf("Unable to create nonce: \n\r");
-			return status;
-		}
+		RET_STATUS(status);
 
 		hmac_params.mode = modes[i];
 		hmac_params.key_id = slot;
@@ -701,35 +566,20 @@ uint8_t sha204_hmac_challenge(uint16_t slot, uint8_t *key){
 		hmac_params.response = hmac_digest_host;
 		hmac_params.temp_key = &temp_key;
 		status = atcab_hmac(hmac_params.mode, hmac_params.key_id, hmac_digest); // hardware
-		if (status != ATCA_SUCCESS)
-		{
-			sha204_parser_rc(status);
-			printf("Unable to atcab_hmac: \n\r");
-			return status;
-		}
+		RET_STATUS(status);
 
 		//Calculate hmac on host - software
 		status = atcah_nonce(&nonce_params);
-		if (status != ATCA_SUCCESS)
-		{
-			sha204_parser_rc(status);
-			printf("Unable to atcah_nonce: \n\r");
-			return status;
-		}
+		RET_STATUS(status);
 
 		status = atcah_hmac(&hmac_params); // host
-		if (status != ATCA_SUCCESS)
-		{
-			sha204_parser_rc(status);
-			printf("Unable to atcah_hmac: \n\r");
-			return status;
-		}
+		RET_STATUS(status);
 
 		//Compare Chip and Host calculations
 		if(memcmp (hmac_digest, hmac_params.response, sizeof(hmac_digest))== 0){
-			printf("Equal for Mode 0x%02x\n\r",modes[i]);
-			} else {
-			printf("Not Equal for Mode 0x%02x\n\r",modes[i]);
+			printf("-Equal for Mode 0x%02x\n\r",modes[i]);
+		} else {
+			printf("-Not Equal for Mode 0x%02x\n\r",modes[i]);
 		}
 	}
 	
@@ -740,7 +590,7 @@ uint8_t sha204_hmac_challenge(uint16_t slot, uint8_t *key){
 /*
 	Based on the example in the application note: 2.3 Validate Using the GenDig Command 
 	
-	This demonstrates how a challenge is done with 2 devices where the host and client do not share keys. 
+	This demonstrates shows how a challenge is done with 2 devices where the host and client do not share keys. 
 	
 	The host has no knowledge of the clients keys, however the host knows the root key and the client's 
 	keys where derived from the root and written to the client during personalization.
@@ -752,13 +602,13 @@ uint8_t sha204_hmac_challenge(uint16_t slot, uint8_t *key){
 	
 	How it works:
 	- The host stores the root key. In this case, slot 10.
-	- The client's keys were created using the root key, but the root key is not stored on the client.
-	- The host reserves a slot for authenticating its clients.
+	- The client's keys were created using the root key during personalization, but the root key is not stored on the client.
+	- The host reserves a slot for authenticating its clients. This is the target for the derived key.
 	- When the host detects a client, we preform a gendig challange.
 	
-	The slot config for this example is set as follows for the this to run correctly:
+	The slot config for this example is set as follows for this to run correctly:
 	
-	slot 0x00 - aka the client - Is a diverse key, created with root key. This slot	cannot be read, isSecret, 
+	slot 0x00 - aka the client - Is a diverse key, created with the root key. This slot	cannot be read, isSecret, 
 	can run a MAC command against it - (checkonly bit is NOT set)
 				
 	slot 0x07 and 0x09 - aka the host - These slot are reserved for creating the ephemeral diverse key, created 
@@ -819,32 +669,17 @@ uint8_t sha204_gendig_example(uint16_t target_key_id, uint16_t mac_key){
 	
 	printf("- Reading SN from client\n\r");
 	status = atcab_read_serial_number(serialNumber); // get the serial number
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to Read Serial Number ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 	printf("- SN received from client\n\r");
 	
 	printf("- Requesting a random number for challenge.\n\r");
 	status = atcab_random(challenge);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Error! Unable to create random number!!\n\r");
-		return status;
-	}
+	RET_STATUS(status);
 	printf("- Random number for challenge received\n\r");	
    	
 	printf("- Creating mac for client\n\r");	
 	status = atcab_mac(mac_mode, mac_key, challenge, mac);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to Generate HW Mac ");
-		sha204_parser_rc(status);
-		return status;
-	}	
+	RET_STATUS(status);
     // Host events
 	memset(&nonce_in, padding, sizeof(nonce_in));
 	memcpy(&nonce_in[0], &serialNumber, sizeof(serialNumber)); // replace first 9 bytes with sn
@@ -852,31 +687,15 @@ uint8_t sha204_gendig_example(uint16_t target_key_id, uint16_t mac_key){
 	printf("- Creating the TempKey via the nonce command (pass-through) on the host...loading the root key and client's sn\n\r");
    
 	status = atcab_nonce_load(root_key, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to create load nonce ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 	printf("- Creating the digest internally on the host (gendig)\n\r");
 	// execute a gendig on key 10 - master key stored on slot 10
 
 	status = atcab_gendig(GENDIG_ZONE_DATA, root_key, derive_key_command, sizeof(derive_key_command));
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable Run GenDig ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 	printf("- Checking the digest internally on the host (checkmac) with the mac generated by the client\n\r");
 	status = atcab_checkmac(0x06, target_key_id, challenge, mac, mac_command_data);	
-
-	if (status != ATCA_SUCCESS)
-	{
-		printf("CheckMac Failed!");
-		sha204_parser_rc(status);
-		return status;
-	}	
+	RET_STATUS(status);
 	
 	printf("- checkmac success!\n\r");
 	return status;
@@ -900,30 +719,15 @@ uint8_t sha204_create_derived_key(uint16_t target, uint8_t *mac, uint8_t padding
 	uint8_t nonce_in[32]= { '\0'};
 	memset(&nonce_in[0], padding, sizeof(nonce_in)); // we padded with 77 per the App note -
 	status = atcab_read_serial_number(serialNumber); // get the serial number
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to Read Serial Number ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	memcpy(&nonce_in[0], &serialNumber, sizeof(serialNumber)); // replace first 9 bytes with sn
 	
 	status = atcab_nonce_load(root_key, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes - pass through
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to create load nonce ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	status = atcab_derivekey(DERIVE_KEY_MODE, target, mac);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to run derive key ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	return status;
 }
@@ -944,29 +748,14 @@ uint8_t sha204_random_challenge(uint8_t slot, uint8_t *secretKey){
 	uint8_t request[88] = { '\0'};
 	uint8_t mode = 0x00;
 	status = atcab_read_serial_number(serialNumber);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to read serial number: \n\r");
-		return status;
-	}	
+	RET_STATUS(status);
 	
 	// request a random number for the challenge
 	status = atcab_random(challenge);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to create random number!!\n\r");
-		return status;
-	}
+	RET_STATUS(status);
 
 	status = atcab_mac(mode, 0x00 + slot, challenge, digest);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to create mac!!\n\r");
-		return status;
-	}
+	RET_STATUS(status);
 	
 	memset(request, 0, sizeof request); // set all with 0	
 	memcpy(request, secretKey, 32);
@@ -983,12 +772,7 @@ uint8_t sha204_random_challenge(uint8_t slot, uint8_t *secretKey){
 	request[87] = 0x00;
 
 	status = atcac_sw_sha2_256(request, 88, sw_digest);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to create digest!!\n\r");
-		return status;
-	}	
+	RET_STATUS(status);
 	return memcmp ( digest, sw_digest, sizeof(sw_digest) );
 
 }
@@ -1007,14 +791,9 @@ uint8_t sha204_random_mac_challenge(uint8_t slot, uint8_t mode, uint8_t *challen
 	uint8_t digest[32]= { '\0'};		
 	
 	status = atcab_mac(mode, 0x00 + slot, challenge, digest);
-	if (status != ATCA_SUCCESS)
-	{
-		sha204_parser_rc(status);
-		printf("Unable to create mac!!\n\r");
-		return status;
-	}	
+	RET_STATUS(status);
 	
-	printf("HW Digest: ");
+	printf("- HW Digest: ");
 	print_buffer(digest, sizeof(digest));
 	
 	return memcmp ( digest, sw_digest, sizeof(digest) );
@@ -1050,31 +829,14 @@ uint8_t sha204_checkmac_example(uint16_t key_id,uint16_t mac_key){
 	mac_command_data[3] = 0x00;		    // key used to create mac - always zero
 	
 	status = atcab_read_serial_number(serialNumber); // get the serial number
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to Read Serial Number ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	if (status != ATCA_SUCCESS)	{printf("Unable to Read Serial Number ");sha204_parser_rc(status);return status;}
 	status = atcab_random(challange);
-	if(status != ATCA_SUCCESS){		
-		sha204_parser_rc(status);
-		return status;
-	}	
+	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;	}	
 
 	status = atcab_mac(0x00, mac_key, challange, mac);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to Generate HW Mac ");
-		sha204_parser_rc(status);
-		return status;
-	}
-	printf("Generated Mac: ");
-	 for(uint8_t i = 0; i < 32;i++){
-		 printf("0x%02X ", mac[i]);
-	 }
-	 printf("\n\r");
-
+	if (status != ATCA_SUCCESS){printf("Unable to Generate HW Mac ");sha204_parser_rc(status);return status;}
+	printf("-Generated Mac: ");
+	print_buffer(mac, sizeof(mac));
 	 // Generate random number for nonce
 	for (uint8_t i = 0; i < 32; i++) {
 		 nonce_in[i] = rand() % 0xFF;
@@ -1082,22 +844,10 @@ uint8_t sha204_checkmac_example(uint16_t key_id,uint16_t mac_key){
 	memcpy(&nonce_in[0], &serialNumber, sizeof(serialNumber)); // replace first 9 bytes with sn
 
 	status = atcab_nonce_load(0x03, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes
-	if (status != ATCA_SUCCESS)
-	{		
-		printf("Unable to create load nonce ");
-		sha204_parser_rc(status);
-		return status;
-	}
-	
+	RET_STATUS(status);
 
-	status = atcab_checkmac(CHECKMAC_MODE_SOURCE_FLAG_MATCH, key_id, challange, mac ,mac_command_data);
-	
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable Run CheckMac ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	status = atcab_checkmac(CHECKMAC_MODE_SOURCE_FLAG_MATCH, key_id, challange, mac ,mac_command_data);	
+	RET_STATUS(status);
 	
 	return status;
 }
@@ -1121,30 +871,15 @@ uint8_t sha204_diverse_key_example(uint16_t target, uint8_t *mac, uint8_t paddin
 	uint8_t nonce_in[32]= { '\0'};
 	memset(&nonce_in[0], padding, sizeof(nonce_in)); // we padded with 0 per the App note -
 	status = atcab_read_serial_number(serialNumber); // get the serial number
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to Read Serial Number ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	memcpy(&nonce_in[0], &serialNumber, sizeof(serialNumber)); // replace first 9 bytes with sn
 
 	status = atcab_nonce_load(0x03, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes - pass through	
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to create load nonce ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	status = atcab_derivekey(DERIVE_KEY_MODE, target, mac);
-	if (status != ATCA_SUCCESS)
-	{
-		printf("Unable to run derive key ");
-		sha204_parser_rc(status);
-		return status;
-	}
+	RET_STATUS(status);
 
 	return status;
 }
@@ -1161,9 +896,9 @@ void sha204_compare_digests(uint8_t *dig1,uint8_t *dig2, int len){
 	int n=memcmp ( dig1, dig2, len );
 
 	if (n == 0){
-		printf("\n\rDigests are the same!\n\r");
-		} else {
-		printf("\n\rDigests are the NOT the same!\n\r");
+		printf("\n\r- Digests are the same!\n\r");
+	} else {
+		printf("\n\r- Digests are the NOT the same!\n\r");
 	}
 
 }
@@ -1206,24 +941,14 @@ uint8_t sha204_validate_keys(uint8_t *root){
 			case 2:
 			case 3:			
 				status= sha204_create_diverse_key(root, key_id, key, 0x77);
-				if (status != ATCA_SUCCESS)
-				{
-					printf("Unable to calculate key: ");
-					sha204_parser_rc(status);
-					return status;
-				}
+				RET_STATUS(status);
 			break;
 			case 4:
 			
 				// need to calculate the derived key
 				//struct atca_derive_key_in_out derivekey_params;
 				status= sha204_create_diverse_key(root, key_id, key, 0x77);
-				if (status != ATCA_SUCCESS)
-				{
-					printf("Unable to calculate key: ");
-					sha204_parser_rc(status);
-					return status;
-				}
+				RET_STATUS(status);
 				status = atcab_read_serial_number(sn);
 				if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}	
 				// need to set the source flag
@@ -1239,9 +964,8 @@ uint8_t sha204_validate_keys(uint8_t *root){
 				derivekey_params.sn = sn;
 				derivekey_params.target_key = derived_key;
 				derivekey_params.temp_key = &temp_key;
-				status = atcah_derive_key(&derivekey_params);
-				
-				if (status != ATCA_SUCCESS)	{printf("Unable to calculate key: ");sha204_parser_rc(status);	return status;}									
+				status = atcah_derive_key(&derivekey_params);				
+				RET_STATUS(status);								
 				
 				memcpy(&key[0],&derived_key[0], sizeof(key));
 			
@@ -1249,50 +973,27 @@ uint8_t sha204_validate_keys(uint8_t *root){
 			break;	
 			case 5:		
 				status = atcab_read_zone(ATCA_ZONE_CONFIG,0,0,7,config, 4);
-				if(status != ATCA_SUCCESS){
-					sha204_parser_rc(status);
-					return status;
-				}
+				RET_STATUS(status);
 				parent_key_id = (config[3] & 0x0F);
 				printf("Parent Key: %d \n\r", (config[3] & 0x0F));
 			
 				// get parent key
 				status = sha204_create_diverse_key(root, parent_key_id, parent_key, 0x77);
-				if (status != ATCA_SUCCESS)
-				{
-					printf("Unable to create diverse key: ");
-					sha204_parser_rc(status);
-					return status;
-				}
+				RET_STATUS(status);
 				// key is created with the parent key, not the root
 				status = sha204_create_diverse_key(parent_key, key_id, key, 0x77);
-				if (status != ATCA_SUCCESS)
-				{
-					printf("Unable to create diverse key: ");
-					sha204_parser_rc(status);
-					return status;
-				}
+				RET_STATUS(status);
 				break;
 			break;			
 			case 6:
 			case 7:
 				status= sha204_create_diverse_key(root, 7, key, 0x77);
-				if (status != ATCA_SUCCESS)
-				{
-					printf("Unable to calculate key: ");
-					sha204_parser_rc(status);
-					return status;
-				}				
+				RET_STATUS(status);				
 			break;
 			case 8:
 			case 9:
 				status= sha204_create_diverse_key(root, key_id, key, 0x77);
-				if (status != ATCA_SUCCESS)
-				{
-					printf("Unable to calculate key: ");
-					sha204_parser_rc(status);
-					return status;
-				}
+				RET_STATUS(status);
 			break;
 			case 10:
 			case 11:
@@ -1300,28 +1001,15 @@ uint8_t sha204_validate_keys(uint8_t *root){
 			break;
 			default:
 			status= sha204_create_diverse_key(root, key_id, key, 0x77);
-			if (status != ATCA_SUCCESS)
-			{
-				printf("Unable to calculate key: ");
-				sha204_parser_rc(status);
-				return status;
-			}
+			RET_STATUS(status);
 			break;
 		}		
 				
 		status = atcab_random(challenge);
-		if(status != ATCA_SUCCESS){
-			printf("Unable to calculate random challenge:");
-			sha204_parser_rc(status);
-		}
+		RET_STATUS(status);
 				
 		status = atcab_read_serial_number(sn);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to atcab_mac:\n\r");
-			sha204_parser_rc(status);
-			return status;
-		}
+		RET_STATUS(status);
 
 		// Perform random nonce
 		memset(&temp_key, 0, sizeof(temp_key));
@@ -1333,20 +1021,10 @@ uint8_t sha204_validate_keys(uint8_t *root){
 		nonce_params.rand_out = rand_out;
 		nonce_params.temp_key = &temp_key;
 		status = atcab_nonce_rand(nonce_params.num_in, rand_out);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to atcab_nonce_rand:\n\r");
-			sha204_parser_rc(status);
-			return status;
-		}
+		RET_STATUS(status);
 		// Calculate nonce value
 		status = atcah_nonce(&nonce_params);
-		if (status != ATCA_SUCCESS)
-		{
-			printf("Unable to atcah_nonce:\n\r");
-			sha204_parser_rc(status);
-			return status;
-		}
+		RET_STATUS(status);
 		
 		for (i = 0; i < sizeof(other_data); i++)
 		{
@@ -1370,7 +1048,7 @@ uint8_t sha204_validate_keys(uint8_t *root){
 			sha204_parser_rc(status);
 			// return ret_status;
 		} else {
-			printf("Generated Mac for slot %d\n\r", key_id);			
+			printf("-Generated Mac for slot %d\n\r", key_id);			
 		}
 
 		// Perform CheckMac Hardware
@@ -1382,13 +1060,13 @@ uint8_t sha204_validate_keys(uint8_t *root){
 			sha204_parser_rc(status);
 			
 			if(key_id == 0x04){
-				printf("You need to reset the rolled key back for key 4. Run command (AE)\n\r");				
+				printf("-You need to reset the rolled key back for key 4. Run command (AE)\n\r");				
 			} else if(key_id == 0x05){				
-				printf("You need to reset the rolled key back for Key 5. Run command (AB)\n\r");
+				printf("-You need to reset the rolled key back for Key 5. Run command (AB)\n\r");
 			}			
 		} else {
 
-			printf("Challenge Success for key %d!\n\r", key_id);
+			printf("-Challenge Success for key %d!\n\r", key_id);
 		}
 	}
 
@@ -1442,23 +1120,23 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	 memcpy(&nonce_seed[0], &nonce_seed_input[0], sizeof(nonce_seed));	 
 	
 	 status = atcab_random(challenge);
-	 if (status != ATCA_SUCCESS) { sha204_parser_rc(status); return status; }		
+	 RET_STATUS(status);		
 	
 	 // this can be anything
 	 uint8_t other_data_offset[CHECKMAC_CLIENT_COMMAND_SIZE] = { ATCA_DERIVE_KEY, 0x05, target_key_id, 0x00 };
 
 	// calculate the parent key (0x02 - used for the encrypting the key
 	status = sha204_create_diverse_key(rootkey, 0x02, parent_key, 0x77);
-	if (status != ATCA_SUCCESS) { return status; }
-	printf("-Created Parent needed for Encrypt Write...\n\r");	
+	RET_STATUS(status);
+	printf("- Created Parent needed for Encrypt Write...\n\r");	
 	// calculate the known original key 4 - this key is derived from the root
 	status = sha204_create_diverse_key(rootkey, target_key_id, key_04, 0x77);
-	if (status != ATCA_SUCCESS)	{return status;}
-	printf("-Created Key %d\n\r", target_key_id);
+	RET_STATUS(status);
+	printf("- Created Key %d\n\r", target_key_id);
 	 // Read the device serial number
 	status = atcab_read_serial_number(sn);
-	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}	
-	printf("-Read Serial Number complete:\t");
+	RET_STATUS(status);
+	printf("- Read Serial Number complete:\t");
 	print_buffer(sn, sizeof(sn));
 	
 	// load the nonce for the temp key - used later
@@ -1467,8 +1145,8 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	
 	// Initialize the slot with a known key - this basically starts the key roll back at the beginning	
 	status = atcab_write_enc(target_key_id, 0, key_04, parent_key, 0x02);
-	if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);return status;}	
-	printf("-Slot %d reset to original value: ", target_key_id);
+	RET_STATUS(status);
+	printf("- Slot %d reset to original value: ", target_key_id);
 	print_buffer(key_04, 32);
    
 	// create the mac required for derive key SlotConfig<TargetKey>.Bit15 == 1
@@ -1479,8 +1157,8 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	derivekey_mac_params.parent_key = parent_key;
 	derivekey_mac_params.mac = mac;
 	status = atcah_derive_key_mac(&derivekey_mac_params);
-	if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);	return status;	}
-	printf("-Mac required for derived key complete....\n\r");
+	RET_STATUS(status);
+	printf("- Mac required for derived key complete....\n\r");
 	
 	memset(&temp_key_params, 0, sizeof(temp_key_params));  
 	// Calculate the derived key
@@ -1494,10 +1172,10 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	derivekey_params.target_key = derived_key;
 	derivekey_params.temp_key = &temp_key_params;	 	
 	status = atcah_derive_key(&derivekey_params); 	 	
-	if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);	return status;}
+	RET_STATUS(status);
 		
-	printf("-Calculating the derived key complete...\n\r");  
-	printf("-Calculated Derived Key (Roll Key):");	
+	printf("- Calculating the derived key complete...\n\r");  
+	printf("- Calculated Derived Key (Roll Key):");	
 	print_buffer(derived_key, 32); 
 	 
 	// how to manually calculate the key - calculate the new derived key - only leaving for tutorial
@@ -1512,15 +1190,15 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	calc_derived_key_input[38] = sn[1];
 	memcpy(&calc_derived_key_input[64], &temp_key_params.value[0], 32);
 	status = atcac_sw_sha2_256(calc_derived_key_input, sizeof(calc_derived_key_input), test_key);
-	if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);	return status;}	
+	RET_STATUS(status);
 		
 	 //create the key with the deriveKey command
 	status=sha204_diverse_key_example(target_key_id, mac, 0x77);
-	if (status != ATCA_SUCCESS){printf("Unable to run derivedKey Command: ");sha204_parser_rc(status);	return status;	}
+	RET_STATUS(status);
 	 		
 	// load the derived key into the temp key register (pass-through)
 	status = atcab_nonce_load(NONCE_MODE_PASSTHROUGH, derived_key, sizeof(derived_key)); // load the temp key with sn and random bytes - pass through		 
-	if(status != ATCA_SUCCESS){sha204_parser_rc(status);return status;}	
+	RET_STATUS(status);
 		
 	// build mac for checkmac 	
 	memset(&mac_param[0], 0, sizeof(mac_param));
@@ -1545,23 +1223,23 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	mac_param[87] = other_data[12];
 	
 	status = atcac_sw_sha2_256(mac_param, sizeof(mac_param), mac_out);
-	if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);return status;}	
+	RET_STATUS(status);	
 	
 	// Run the checkmac command to validate the calculated derived key	-
 	
 	status = atcab_checkmac(mac_mode, target_key_id, challenge, mac_out, other_data);
 		
-	if(status != ATCA_SUCCESS){printf("atcab_checkmac failed: \n\r");sha204_parser_rc(status);return status;}	
-	printf("-Simple validation complete... now try a gendig\n\r");	
+	RET_STATUS(status);
+	printf("- Simple validation complete... now try a gendig\n\r");	
 	
 	status = atcab_nonce_load(NONCE_MODE_PASSTHROUGH, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes - pass through	
-	if(status != ATCA_SUCCESS){sha204_parser_rc(status);return status;}
-	printf("-TempKey loaded with a Pass-Through Nonce...\n\r");	
+	RET_STATUS(status);
+	printf("- TempKey loaded with a Pass-Through Nonce...\n\r");	
 	
 	// create the temp key in the client tempkey register		
 	status = atcab_gendig(GENDIG_ZONE_DATA, target_key_id, other_data_offset, sizeof(other_data_offset));
-	if(status != ATCA_SUCCESS){	printf("Failed GENDIG:");sha204_parser_rc(status);return status;}		
-	printf("-GenDig complete. The calculated digest has been loaded into the TempKey Register...\n\r");	
+	RET_STATUS(status);
+	printf("- GenDig complete. The calculated digest has been loaded into the TempKey Register...\n\r");	
 	// calculated the temp key on the host - this should match what the gendig command created 	
 	gen_dig_params.zone = ATCA_ZONE_DATA;
 	gen_dig_params.key_id = target_key_id;
@@ -1571,7 +1249,7 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	gen_dig_params.other_data = other_data_offset;
 	gen_dig_params.is_key_nomac = true;
 	status = atcah_gen_dig(&gen_dig_params);
-	printf("-Calculated the digest on the host - this should match what the gendig command created...\n\r");		
+	printf("- Calculated the digest on the host - this should match what the gendig command created...\n\r");		
 	// now calculate the mac with the tempkey.	
 	memset(&gen_dig_params, 0, sizeof(gen_dig_params));
 	struct atca_check_mac_in_out test_mac_host;
@@ -1584,12 +1262,10 @@ uint8_t sha204_key_roll_example_validation(uint8_t *rootkey){
 	test_mac_host.temp_key = &temp_key_params;
 	test_mac_host.other_data = other_data_offset;	
 	status = atcah_check_mac(&test_mac_host);
-	if (status != ATCA_SUCCESS)	{printf("Failed Host Check MAC:"); sha204_parser_rc(status);return status;}
-				
-	printf("-Created mac complete. Now checking the digest internally with checkmac command...\n\r");
+	RET_STATUS(status);				
+	printf("- Created mac complete. Now checking the digest internally with checkmac command...\n\r");
 	status = atcab_checkmac(0x06, target_key_id, challenge, mac_out, other_data_offset);
-
-	if (status != ATCA_SUCCESS)	{printf("CheckMac Failed!");sha204_parser_rc(status);}
+	RET_STATUS(status);
 			
 	return status;
 }
@@ -1619,21 +1295,22 @@ uint8_t sha204_calculated_rolled_key(uint8_t *root, uint8_t key_id, uint8_t roll
 	uint8_t other_data_offset[CHECKMAC_CLIENT_COMMAND_SIZE] = { ATCA_DERIVE_KEY, 0x05, key_id, 0x00 };
 
 	// first check if it is a derived key
-	status = sha204_get_slot_config(4, config_data);
-	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}			
+	status = sha204_get_slot_config(config_data);
+	RET_STATUS(status);		
+	printf("- Config Data: ");
 	print_buffer(config_data, sizeof(config_data));
 	uint8_t idx = key_id * 2;
-	printf("-Key %d config: 0x%02X %02X\n\r", key_id, config_data[idx], config_data[idx+1]);	
+	printf("- Key %d config: 0x%02X %02X\n\r", key_id, config_data[idx], config_data[idx+1]);	
 	
 	uint8_t write_config_12 = ((config_data[idx] >> 4)  & 0x01);
 	uint8_t write_config_13 = ((config_data[idx] >> 5)  & 0x01);
 	uint8_t write_config_14 = ((config_data[idx] >> 6)  & 0x01);
 	uint8_t write_config_15 = ((config_data[idx] >> 7)  & 0x01);
 
-	printf("-SlotConfig<%d>.15 = %d\n\r", key_id,write_config_15);
-	printf("-SlotConfig<%d>.14 = %d\n\r", key_id,write_config_14);
-	printf("-SlotConfig<%d>.13 = %d\n\r", key_id,write_config_13);
-	printf("-SlotConfig<%d>.12 = %d\n\r", key_id, write_config_12);	
+	printf("- SlotConfig<%d>.15 = %d\n\r", key_id,write_config_15);
+	printf("- SlotConfig<%d>.14 = %d\n\r", key_id,write_config_14);
+	printf("- SlotConfig<%d>.13 = %d\n\r", key_id,write_config_13);
+	printf("- SlotConfig<%d>.12 = %d\n\r", key_id, write_config_12);	
 	if(write_config_13 != 1 || write_config_12 != 0){
 		printf("** SlotConfig<%d>.12 must be 0 and SlotConfig<%d>.13 must be 1 to run this function\n\r", key_id, key_id);	
 		return ATCA_GEN_FAIL;
@@ -1642,18 +1319,18 @@ uint8_t sha204_calculated_rolled_key(uint8_t *root, uint8_t key_id, uint8_t roll
 	printf("-Mac required for derived key? %s\n\r", write_config_15 == 1 ? "Yes" : "No");
 	
 	status = atcab_random(challenge);
-	if (status != ATCA_SUCCESS) { sha204_parser_rc(status); return status; }
+	RET_STATUS(status);
 	
 	status = atcab_read_serial_number(sn);
-	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}
+	RET_STATUS(status);
 	
 	memset(&nonce_in[0], 0x77, sizeof(nonce_in)); // we padded with 0x77 -
 	memcpy(&nonce_in[0], &sn[0], sizeof(sn)); // replace first 9 bytes with sn	
 	
 	// calculate the original key which was derived form the root	
 	status = sha204_create_diverse_key(root, key_id, rolling_key, 0x77);
-	if (status != ATCA_SUCCESS)	{return status;}
-	printf("-Created Key %d:\t\t\t\t", key_id);
+	RET_STATUS(status);
+	printf("- Created Key %d:\t", key_id);
 	print_buffer(rolling_key, sizeof(rolling_key));
 	
 	// not we check how many times the key was rolled in this session. 
@@ -1676,25 +1353,25 @@ uint8_t sha204_calculated_rolled_key(uint8_t *root, uint8_t key_id, uint8_t roll
 			derivekey_params.target_key = temporary_key;
 			derivekey_params.temp_key = &temp_key_params;
 			status = atcah_derive_key(&derivekey_params);
-			if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);	return status;}			
+			RET_STATUS(status);		
 			
-			printf("-Calculated Derived Key (Key was rolled %d times):\t", i+1);
+			printf("- Calculated Derived Key (Key was rolled %d times):\t", i+1);
 			print_buffer(temporary_key, 32);
 			memcpy(&derived_key[0], &temporary_key[0], sizeof(temporary_key));
 			memcpy(&rolling_key[0], &temporary_key[0], sizeof(temporary_key));		
 		}
 		
-		printf("-Calculated Final Key:\t\t\t");
+		printf("- Calculated Final Key:\t");
 		print_buffer(derived_key, 32);
 		
 		// now we validate the rolled key
 		status = atcab_nonce_load(NONCE_MODE_PASSTHROUGH, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes - pass through
-		if(status != ATCA_SUCCESS){sha204_parser_rc(status);return status;}
+		RET_STATUS(status);
 		printf("-TempKey loaded with a Pass-Through Nonce...\n\r");
 		
 		// create the temp key in the client tempkey register
 		status = atcab_gendig(GENDIG_ZONE_DATA, key_id, other_data_offset, sizeof(other_data_offset));
-		if(status != ATCA_SUCCESS){	printf("Failed GENDIG:");sha204_parser_rc(status);return status;}
+		RET_STATUS(status);
 		printf("-GenDig complete. The calculated digest has been loaded into the TempKey Register...\n\r");
 		// calculated the temp key on the host - this should match what the gendig command created
 		gen_dig_params.zone = ATCA_ZONE_DATA;
@@ -1705,7 +1382,8 @@ uint8_t sha204_calculated_rolled_key(uint8_t *root, uint8_t key_id, uint8_t roll
 		gen_dig_params.other_data = other_data_offset;
 		gen_dig_params.is_key_nomac = true;
 		status = atcah_gen_dig(&gen_dig_params);
-		printf("-Calculated the digest on the host - this should match what the gendig command created...\n\r");
+		RET_STATUS(status);
+		printf("- Calculated the digest on the host - this should match what the gendig command created...\n\r");
 		// now calculate the mac with the tempkey.
 		memset(&gen_dig_params, 0, sizeof(gen_dig_params));
 		struct atca_check_mac_in_out test_mac_host;
@@ -1718,19 +1396,18 @@ uint8_t sha204_calculated_rolled_key(uint8_t *root, uint8_t key_id, uint8_t roll
 		test_mac_host.temp_key = &temp_key_params;
 		test_mac_host.other_data = other_data_offset;
 		status = atcah_check_mac(&test_mac_host);
-		if (status != ATCA_SUCCESS)	{printf("Failed Host Check MAC:"); sha204_parser_rc(status);return status;}
+		RET_STATUS(status);
 		
-		printf("-Created mac complete. Now checking the digest internally with checkmac command...\n\r");
+		printf("- Created mac complete. Now checking the digest internally with checkmac command...\n\r");
 		status = atcab_checkmac(0x06, key_id, challenge, mac_out, other_data_offset);
-
-		if (status != ATCA_SUCCESS)	{printf("CheckMac Failed!");sha204_parser_rc(status);return status;}		
+		RET_STATUS(status);
 		
     };
 	return status;
 	
 }
 
-uint8_t sha204_get_slot_config(uint8_t slot_id, uint8_t* config_data){
+uint8_t sha204_get_slot_config(uint8_t* config_data){
 	
 	status = ATCA_SUCCESS;
 	uint8_t data[4];	
@@ -1740,10 +1417,7 @@ uint8_t sha204_get_slot_config(uint8_t slot_id, uint8_t* config_data){
 	uint8_t ct = 0;
 	for(offset = 5; offset < 8; offset++){
 		status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-		if(status != ATCA_SUCCESS){
-			sha204_parser_rc(status);
-			return status;
-		}	
+		RET_STATUS(status);
 		config_data[ct] =  data[1];
 		config_data[ct+1] =  data[0];
 		config_data[ct+2] =  data[3];
@@ -1755,10 +1429,7 @@ uint8_t sha204_get_slot_config(uint8_t slot_id, uint8_t* config_data){
 	block = 1;
 	for(offset = 0; offset < 5; offset++){
 		status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
-		if(status != ATCA_SUCCESS){
-			sha204_parser_rc(status);
-			return status;
-		}
+		RET_STATUS(status);
 		config_data[ct] =  data[1];
 		config_data[ct+1] =  data[0];
 		config_data[ct+2] =  data[3];
@@ -1787,8 +1458,8 @@ uint8_t sha204_validate_derived_key(uint8_t *root, uint8_t key_id, uint8_t paddi
 	uint8_t other_data_offset[CHECKMAC_CLIENT_COMMAND_SIZE] = { ATCA_DERIVE_KEY, 0x05, key_id, 0x00 };
 
 	// first check if it is a derived key
-	status = sha204_get_slot_config(4, config_data);
-	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}
+	status = sha204_get_slot_config(config_data);
+	RET_STATUS(status);
 	print_buffer(config_data, sizeof(config_data));
 	uint8_t idx = key_id * 2;
 	printf("Key %d config: 0x%02X %02X\n\r", key_id, config_data[idx], config_data[idx+1]);
@@ -1813,20 +1484,20 @@ uint8_t sha204_validate_derived_key(uint8_t *root, uint8_t key_id, uint8_t paddi
 	printf("SlotConfig<5>.12 = 1 uses the parent key %d to calculate the derived key.\n\r", parent_key_id);
 	
 	status = sha204_create_diverse_key(root, parent_key_id, parent_key, padding);
-	if (status != ATCA_SUCCESS){printf("Unable to calculate key: ");sha204_parser_rc(status);}		
+	RET_STATUS(status);
 	
 	status = atcab_random(challenge);
-	if (status != ATCA_SUCCESS) { sha204_parser_rc(status); return status; }
+	RET_STATUS(status);
 	
 	status = atcab_read_serial_number(sn);
-	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}
+	RET_STATUS(status);
 	
 	memset(&nonce_in[0], 0x77, sizeof(nonce_in)); // we padded with 0x77 -
 	memcpy(&nonce_in[0], &sn[0], sizeof(sn)); // replace first 9 bytes with sn
 	
 	// calculate the original key which was derived form the root
 	status = sha204_create_diverse_key(root, key_id, rolling_key, 0x77);
-	if (status != ATCA_SUCCESS)	{return status;}
+	RET_STATUS(status);
 	printf("Created Key %d: ", key_id);
 	print_buffer(rolling_key, sizeof(rolling_key));	
 			
@@ -1842,19 +1513,19 @@ uint8_t sha204_validate_derived_key(uint8_t *root, uint8_t key_id, uint8_t paddi
 	derivekey_params.target_key = derived_key;
 	derivekey_params.temp_key = &temp_key_params;
 	status = atcah_derive_key(&derivekey_params);
-	if (status != ATCA_SUCCESS)	{sha204_parser_rc(status);	return status;}
+	RET_STATUS(status);
 			
 	printf("Calculated Derived Key (Roll Key):");
 	print_buffer(derived_key, 32);
 		
 	// now we validate the rolled key
 	status = atcab_nonce_load(NONCE_MODE_PASSTHROUGH, nonce_in, sizeof(nonce_in)); // load the temp key with sn and random bytes - pass through
-	if(status != ATCA_SUCCESS){sha204_parser_rc(status);return status;}
+	RET_STATUS(status);
 	printf("TempKey loaded with a Pass-Through Nonce...\n\r");
 		
 	// create the temp key in the client tempkey register
 	status = atcab_gendig(GENDIG_ZONE_DATA, key_id, other_data_offset, sizeof(other_data_offset));
-	if(status != ATCA_SUCCESS){	printf("Failed GENDIG:");sha204_parser_rc(status);return status;}
+	RET_STATUS(status);
 	printf("GenDig complete. The calculated digest has been loaded into the TempKey Register...\n\r");
 	// calculated the temp key on the host - this should match what the gendig command created
 	gen_dig_params.zone = ATCA_ZONE_DATA;
@@ -1865,7 +1536,7 @@ uint8_t sha204_validate_derived_key(uint8_t *root, uint8_t key_id, uint8_t paddi
 	gen_dig_params.other_data = other_data_offset;
 	gen_dig_params.is_key_nomac = true;
 	status = atcah_gen_dig(&gen_dig_params);
-	
+	RET_STATUS(status);
 	printf("Calculated the digest on the host - this should match what the gendig command created...\n\r");
 	// now calculate the mac with the tempkey.
 	memset(&gen_dig_params, 0, sizeof(gen_dig_params));
@@ -1879,12 +1550,10 @@ uint8_t sha204_validate_derived_key(uint8_t *root, uint8_t key_id, uint8_t paddi
 	test_mac_host.temp_key = &temp_key_params;
 	test_mac_host.other_data = other_data_offset;
 	status = atcah_check_mac(&test_mac_host);
-	if (status != ATCA_SUCCESS)	{printf("Failed Host Check MAC:"); sha204_parser_rc(status);return status;}
+	RET_STATUS(status);
 		
 	printf("Created mac complete. Now checking the digest internally with checkmac command...\n\r");
 	status = atcab_checkmac(0x06, key_id, challenge, mac_out, other_data_offset);
-
-	if (status != ATCA_SUCCESS)	{printf("CheckMac Failed!");sha204_parser_rc(status);return status;}		
 	
 	return status;
 	
@@ -1918,9 +1587,9 @@ uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_
 	uint8_t mac_mode = MAC_MODE_CHALLENGE | MAC_MODE_INCLUDE_SN | MAC_MODE_INCLUDE_OTP_64; // include SN	
 	struct atca_temp_key temp_key;
 	
-	status = sha204_get_slot_config(4, config_data);
-	if(status != ATCA_SUCCESS){	sha204_parser_rc(status);return status;}
-	//print_buffer(config_data, sizeof(config_data));
+	status = sha204_get_slot_config(config_data);
+	RET_STATUS(status);
+	
 	uint8_t idx = key_id * 2;
 	printf("-Key %d config: 0x%02X %02X\n\r", key_id, config_data[idx], config_data[idx+1]);
 	
@@ -1935,7 +1604,7 @@ uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_
 	printf("-SlotConfig<%d>.7 = %d\n\r", key_id, write_config_7);
 			
 	status = sha204_create_diverse_key(root, key_id, derived_key, padding);
-	if (status != ATCA_SUCCESS)	{	printf("Unable to Create Derived Key "); sha204_parser_rc(status);	return status;	}
+	RET_STATUS(status);
 		
 	// this is the command used to create the client's key - used to create the ephemeral key in gendig	
 	uint8_t derive_key_command[4] = {	// this is command used by derivekey command to create the diverse key for target slot
@@ -1952,7 +1621,7 @@ uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_
 	
 	printf("- Reading SN from client\n\r");
 	status = atcab_read_serial_number(serialNumber); // get the serial number
-	if (status != ATCA_SUCCESS)	{	printf("Unable to Read Serial Number ");	sha204_parser_rc(status);	return status;	}
+	RET_STATUS(status);
 	printf("- SN received from client\n\r");
 	
 	// see datasheet Table 8-10 OtherData
@@ -1965,11 +1634,11 @@ uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_
 	
 	//opt data
 	status = sha204_read_otp_zone(32, 0, otp_data); // read the first 32 bytes of the otp zone
-	if (status != ATCA_SUCCESS)	{	printf("Unable to read OTP: ");	sha204_parser_rc(status);return status;	}	
+	RET_STATUS(status);
 
 	printf("- Requesting a random number for challenge.\n\r");
 	status = atcab_random(challenge);
-	if (status != ATCA_SUCCESS){sha204_parser_rc(status);printf("Error! Unable to create random number!!\n\r");	return status;}
+	RET_STATUS(status);
 	printf("- Random number for challenge received\n\r");
 		
 	struct atca_mac_in_out mac_params;	
@@ -1989,7 +1658,7 @@ uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_
 		// this is for testing. For security, set SlotConfig<%d>.4 = 1 (CheckOnly)
 		printf("- Creating mac on client\n\r");
 		status = atcab_mac(mac_mode, mac_key, challenge, mac);
-		if (status != ATCA_SUCCESS)	{printf("Unable to Generate HW Mac ");sha204_parser_rc(status);	return status;}				
+		RET_STATUS(status);			
 	}	
 	
 	printf("************************************************\n\r");
@@ -2010,17 +1679,17 @@ uint8_t sha204_validate_key_gendig(uint8_t *root, uint16_t key_id, uint16_t mac_
 	printf("- Creating the TempKey via the nonce command (pass-through) on the host...loading the root key and client's sn\n\r");
 	
 	status = atcab_nonce_load(root_key_id, nonce_in, sizeof(nonce_in)); // load the temp key with sn and PADDING
-	if (status != ATCA_SUCCESS)	{printf("Unable to create load nonce ");sha204_parser_rc(status);return status;	}
+	RET_STATUS(status);
 		
 	printf("- Creating the digest internally on the client (gendig)\n\r");
 	// execute a gendig on key 10 - master key stored on slot 10 - this will create the digest for the checkmac
 	status = atcab_gendig(GENDIG_ZONE_DATA, root_key_id, derive_key_command, sizeof(derive_key_command));
-	if (status != ATCA_SUCCESS)	{printf("Unable Run GenDig ");sha204_parser_rc(status);	return status;}
+	RET_STATUS(status);
 		
 	printf("- Checking the digest internally on the client (checkmac) with the mac generated by the host\n\r");
 	status = atcab_checkmac(checkmac_mode, key_id, challenge, mac, mac_command_data);
 
-	if (status != ATCA_SUCCESS){printf("CheckMac Failed!");	sha204_parser_rc(status);return status;	}
+	RET_STATUS(status);
 	
 	printf("- Checkmac (Mode: 0x%02X)/GenDig success!\n\r", checkmac_mode);
 	
