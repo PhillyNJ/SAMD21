@@ -924,8 +924,9 @@ void sha204_app_command_dispatch(void)
 			case 0xB7:
 				printf("Get slot config details for a specific slot. Enter 'c' to cancel. \n\r" );
 				printf("Enter the slot number: " );						
-				scanf("%s",cmd);								
-				sscanf(cmd, "%d", &rc);				
+				scanf("%s",cmd);										
+				sscanf(cmd, "%d", &rc);		
+						
 				if(rc > -1 && rc< 16){
 					printf("Slot: %s\n\r", cmd);
 					status = sha204_get_slot_config(config_data);	
@@ -981,7 +982,7 @@ void sha204_app_command_dispatch(void)
 					if(write_config_13 == 1 && write_config_15 == 1){
 						printf("- Authorizing MAC required for DeriveKey command (Roll).\n\r");
 					}
-					if(write_config_12 == 1 && write_config_13 == 1){
+					if(write_config_12 == 1 && write_config_13 == 1  && write_config_15 == 0){
 						printf("- DeriveKey command can be run without authorizing MAC(Create).\n\r");
 					}
 					
