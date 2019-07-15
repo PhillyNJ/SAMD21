@@ -12,41 +12,41 @@
 	 uint8_t offset = 0;
 	 uint8_t data[4];
 	 memset(&data, 0, sizeof(data));
-	 volatile uint8_t ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
+	 status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
 	 RET_STATUS(status);
 	 memcpy(&details->serial_number[0], &data, 4);
 	 //sha204_print_buffer(data, 4);
 	 offset = 1;
-	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
+	 status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
 	 RET_STATUS(status);
 	 memcpy(&details->rev_num[0], &data, 4);
 	 offset = 2;
 	 
-	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
+	 status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
 	 RET_STATUS(status);
 	 memcpy(&details->serial_number[4], &data, 4);
 	 offset = 3;
-	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
+	 status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
 	 RET_STATUS(status);
+	 details->serial_number[8] = data [0];
 	 // get CheckMacConfig and i2c setting	
 	 offset = 4;
-	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
+	 status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
 	 RET_STATUS(status);	  
 	 details->i2c_address = data[0];
 	 details->check_mac_config = data[1];
 	 details->otp_mode = data[2];
-	 details->select_mode = data[3];	 
-	 
-	 memcpy(&details->serial_number[8], &data, 1);
+	 details->select_mode = data[3];	  
+	
 	 // get lock and lockConfig
 	 block = 2;
 	 offset = 5;
-	 ret = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
+	 status = atcab_read_zone(ATCA_ZONE_CONFIG,0,block,offset,data, 4);
 	 RET_STATUS(status);
 	 details->lock_value = data[2];
 	 details->lock_config = data[3];
 
-	 return ret;
+	 return status;
  }
  
  void sha204_parser_rc(uint8_t ret){
