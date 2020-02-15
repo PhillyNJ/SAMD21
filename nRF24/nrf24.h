@@ -101,6 +101,9 @@ uint8_t	nrf24_getPayLoad(void * buf, uint8_t len);
 void    nrf24_sendPayLoad(void * buf, uint8_t len, uint8_t *ack_data);
 uint8_t nrf24_getPayloadLength(void);
 void	nrf24_setAckPayLoad(void * buf, uint8_t pipe, uint8_t len);
+uint8_t	nrf24_getAckPayLoad(void * buf, uint8_t len);
+uint8_t	(* getAckPayLoad_callback)(void * buf, uint8_t len);
+void nrf24_setAckPlayLoadCallback(uint8_t	(* getAckPayLoad_cb)(void * , uint8_t));
 
 /* post transmission analysis */
 uint8_t nrf24_getPacketLossCount(void);

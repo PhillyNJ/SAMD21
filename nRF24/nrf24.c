@@ -473,6 +473,38 @@ uint8_t nrf24_getPayLoad(void *buf, uint8_t len){
 	return pipeNo;
 }
 
+uint8_t	nrf24_getAckPayLoad(void * buf, uint8_t len){
+	
+	printf("\n\r** Ack Payload Default ** \n\r");
+	
+	uint8_t pipeNo =  ((nrf24_getStatus() >> RX_P_NO) & 0x07);
+	
+	for(int i = 0; i<len;i++){
+		read_buffer[i] = 0;
+	}
+	uint8_t *data = buf;
+	spi_select_slave(&spi_master_instance, &slave, true);
+	nrf24_transfer(R_RX_PAYLOAD);
+	data_buffer[0]= R_RX_PAYLOAD;
+	spi_transceive_buffer_job(&spi_master_instance, data_buffer,read_buffer,len+1);
+	nrf24_transfer_wait();
+	spi_select_slave(&spi_master_instance, &slave, false);
+
+	for(int i = 0; i<len;i++){
+		data[i] = read_buffer[i];
+	}
+	nrf24_configRegister(RF_STATUS,(1<<RX_DR)); // Reset status register
+	nrf24_flushRx();
+	return pipeNo;
+	
+}
+void nrf24_setAckPlayLoadCallback(uint8_t	(* getAckPayLoad_cb)(void * , uint8_t)){
+
+	getAckPayLoad_callback = getAckPayLoad_cb;
+}
+
+
+
 uint8_t nrf24_getPacketLossCount()
 {	
 	uint8_t val = nrf24_readRegister(OBSERVE_TX,  2);
@@ -530,9 +562,15 @@ uint8_t nrf24_isSending(uint8_t * ack_data)
 		
 		if(ack == 0){ // rx has data when 0
 			*ack_data = 1; // we have data :)
-			printf("** Ack Payload ** \n\r");
-			nrf24_getPayLoad(&ack_payload, BUF_LENGTH);	
-			nrf24_flushRx();
+			
+			
+			if(getAckPayLoad_callback){
+				getAckPayLoad_callback(&ack_payload, BUF_LENGTH);				
+			} else {
+				// call back not defined
+				nrf24_getAckPayLoad(&ack_payload, BUF_LENGTH);	
+			}
+			
 		}
 
 		nrf24_powerUpRx();
