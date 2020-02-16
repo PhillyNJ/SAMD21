@@ -1,5 +1,5 @@
-/** -----------------------------------------------------------------------------
-* Multi-Radio with ACK payload *
+/**  Multi-Radio with ACK payload *
+
 RF24		SAMD21 xplained Pro
 CE			PB11
 CSN			PB17
@@ -29,9 +29,11 @@ uint16_t ackval= 0;
 
 enum Node nd = PTX1; 
 
+
 int main (void)
 {
 	system_init();
+
 	configure_console(9600);
 	delay_init();
 	nrf24_configure_spi_master();
@@ -51,13 +53,24 @@ int main (void)
 	nrf24_powerUpRx();	
 
 	while (1) {	
-	     if(nd == PRX){
+	    
+		 if(nd == PRX){
 			receive_data();					
-		 } else {			
-			send_data();	
-			printf("Packet Loss: %d\n\r", nrf24_getPacketLossCount());
-			delay_s(5);		
-		 }		
+		 } else {		
+			
+			if (port_pin_get_input_level(BUTTON_0_PIN) == BUTTON_0_ACTIVE) {
+				/* Yes, so turn LED on. */
+				port_pin_toggle_output_level(LED_0_PIN);
+				send_data();
+				printf("\n\rPacket Loss: %d\n\r", nrf24_getPacketLossCount());
+				delay_s(1);
+			} else {
+				/* No, so turn LED off. */
+				port_pin_toggle_output_level(LED_0_PIN);
+			}	
+			
+			
+		 }	 
 	}
 }
 
@@ -131,16 +144,14 @@ void receive_data(){
 	}	
 }
 
-uint8_t	getAckPayLoad_cb(void * buf, uint8_t len){
+void getAckPayLoad_cb(uint8_t len){	
 	
-	printf("\n\r** Ack Payload From Call Back** \n\r");
-	
-	uint8_t pipeNo =  ((nrf24_getStatus() >> RX_P_NO) & 0x07);
+	printf("\n\r** Ack Payload From Call Back ** \n\r");
 	
 	for(int i = 0; i<len;i++){
-		read_buffer[i] = 0;
+		read_buffer[i] = 0; // clear the buffer
 	}
-	uint8_t *dt = buf;
+	
 	spi_select_slave(&spi_master_instance, &slave, true);
 	nrf24_transfer(R_RX_PAYLOAD);
 	data_buffer[0]= R_RX_PAYLOAD;
@@ -149,10 +160,9 @@ uint8_t	getAckPayLoad_cb(void * buf, uint8_t len){
 	spi_select_slave(&spi_master_instance, &slave, false);
 
 	for(int i = 0; i<len;i++){
-		dt[i] = read_buffer[i];
+		printf("0x%x ",  read_buffer[i]);
 	}
 	nrf24_configRegister(RF_STATUS,(1<<RX_DR)); // Reset status register
 	nrf24_flushRx();
-	return pipeNo;
 	
 }

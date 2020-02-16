@@ -473,11 +473,9 @@ uint8_t nrf24_getPayLoad(void *buf, uint8_t len){
 	return pipeNo;
 }
 
-uint8_t	nrf24_getAckPayLoad(void * buf, uint8_t len){
+void nrf24_getAckPayLoad(void * buf, uint8_t len){
 	
-	printf("\n\r** Ack Payload Default ** \n\r");
-	
-	uint8_t pipeNo =  ((nrf24_getStatus() >> RX_P_NO) & 0x07);
+	printf("\n\r** Ack Payload Default ** \n\r");		
 	
 	for(int i = 0; i<len;i++){
 		read_buffer[i] = 0;
@@ -494,11 +492,10 @@ uint8_t	nrf24_getAckPayLoad(void * buf, uint8_t len){
 		data[i] = read_buffer[i];
 	}
 	nrf24_configRegister(RF_STATUS,(1<<RX_DR)); // Reset status register
-	nrf24_flushRx();
-	return pipeNo;
+	nrf24_flushRx();	
 	
 }
-void nrf24_setAckPlayLoadCallback(uint8_t	(* getAckPayLoad_cb)(void * , uint8_t)){
+void nrf24_setAckPlayLoadCallback(void	(* getAckPayLoad_cb)(uint8_t)){
 
 	getAckPayLoad_callback = getAckPayLoad_cb;
 }
@@ -532,7 +529,7 @@ void nrf24_sendPayLoad(void * buf, uint8_t len, uint8_t *ack_data){
 	delay_us(15);
 	nrf24_ce_state(LOW);
 
-	while(nrf24_isSending(ack_data)){}; // wait to finish or time out
+	while(nrf24_isSending()){}; // wait to finish or time out
 
 }
 
@@ -544,7 +541,7 @@ void nrf24_setAckPayLoad(void * buf, uint8_t pipe, uint8_t len){
    spi_select_slave(&spi_master_instance, &slave, false); 
 	
 }
-uint8_t nrf24_isSending(uint8_t * ack_data)
+uint8_t nrf24_isSending(void)
 {   
 	/* read the current status */
 	uint8_t status = nrf24_getStatus();
@@ -561,11 +558,9 @@ uint8_t nrf24_isSending(uint8_t * ack_data)
 		uint8_t ack = nrf24_rxFifoEmpty();		
 		
 		if(ack == 0){ // rx has data when 0
-			*ack_data = 1; // we have data :)
-			
-			
+					
 			if(getAckPayLoad_callback){
-				getAckPayLoad_callback(&ack_payload, BUF_LENGTH);				
+				getAckPayLoad_callback(BUF_LENGTH);				
 			} else {
 				// call back not defined
 				nrf24_getAckPayLoad(&ack_payload, BUF_LENGTH);	
@@ -736,14 +731,14 @@ void nrf24_printNodeName(enum Node nd){
 
  switch(node){	 
 	 case PRX:
-		printf("Receiver Mode\n\r");
+		printf("\n\rReceiver Mode\n\r");
 	 break;
 	 case PTX1:
 	 case PTX2:	
 	 case PTX3:	
 	 case PTX4:		
 	 case PTX5:		
-		printf("Sender Mode %d\n\r", nd);
+		printf("\n\rSender Mode %d\n\r", nd);
 	 break;
 	 
  }

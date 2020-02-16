@@ -16,7 +16,7 @@
 
 void send_data(void);
 void receive_data(void);
-uint8_t	getAckPayLoad_cb(void * buf, uint8_t len);
+void getAckPayLoad_cb(uint8_t len);
 enum mode_t {
 	auth = 0, 
 	data = 1

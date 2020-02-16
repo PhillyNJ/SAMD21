@@ -91,7 +91,7 @@ void    nrf24_configure_star_network(uint8_t channel);
 void    nrf24_configure_star_node(uint8_t node_id, enum Mode md);
 /* nRF24 state check functions */
 uint8_t nrf24_dataReady(void);
-uint8_t nrf24_isSending(uint8_t *ack_data);
+uint8_t nrf24_isSending(void);
 uint8_t nrf24_getStatus(void);
 uint8_t nrf24_rxFifoEmpty(void);
 uint8_t nrf24_txIsFull(void);
@@ -101,9 +101,9 @@ uint8_t	nrf24_getPayLoad(void * buf, uint8_t len);
 void    nrf24_sendPayLoad(void * buf, uint8_t len, uint8_t *ack_data);
 uint8_t nrf24_getPayloadLength(void);
 void	nrf24_setAckPayLoad(void * buf, uint8_t pipe, uint8_t len);
-uint8_t	nrf24_getAckPayLoad(void * buf, uint8_t len);
-uint8_t	(* getAckPayLoad_callback)(void * buf, uint8_t len);
-void nrf24_setAckPlayLoadCallback(uint8_t	(* getAckPayLoad_cb)(void * , uint8_t));
+void	nrf24_getAckPayLoad(void * buf, uint8_t len);
+void	(* getAckPayLoad_callback)(uint8_t len);
+void nrf24_setAckPlayLoadCallback(void	(* getAckPayLoad_cb)(uint8_t));
 
 /* post transmission analysis */
 uint8_t nrf24_getPacketLossCount(void);
