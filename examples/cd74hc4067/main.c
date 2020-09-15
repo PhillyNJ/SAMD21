@@ -14,11 +14,11 @@ cd74hc4067		SAMD21
 ----------------------
 EN				PB09
 SIG 			PB07
-S0				PB07
-S1				PB02
-S2				PB03
-S3				PB04
-S4				PB05
+S0				PB02
+S1				PB03
+S2				PB04
+S3				PB05
+
 
 */
 
