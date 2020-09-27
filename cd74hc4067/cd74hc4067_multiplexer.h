@@ -26,5 +26,5 @@ uint8_t mp_channels[16];
 void cd74hc4067_init(uint64_t en, uint8_t sig_pin, uint64_t s0, uint64_t s1, uint64_t s2, uint64_t s3, uint64_t sig_port);
 void cd74hc4067_enable(uint8_t val);
 uint8_t cd74hc4067_read_channel(uint8_t channel);
-
+void cd74hc4067_set_channel(uint8_t channel);
 #endif /* CD74HC4067_MULTIPLEXER_H_ */

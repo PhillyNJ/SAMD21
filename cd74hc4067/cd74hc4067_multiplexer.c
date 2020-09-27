@@ -76,3 +76,40 @@ uint8_t cd74hc4067_read_channel(uint8_t channel){
 	return val;
 }
 
+void cd74hc4067_set_channel(uint8_t channel){
+	
+	cd74hc4067_enable(LOW);
+	delay_ms(1);
+	uint8_t b0 = (((channel) >> (0)) & 0x01);
+	uint8_t b1 = (((channel) >> (1)) & 0x01);
+	uint8_t b2 = (((channel) >> (2)) & 0x01);
+	uint8_t b3 = (((channel) >> (3)) & 0x01);
+	
+	if(b0 == 0){
+		MP_OUT &= ~(mp_s0);
+	} else {
+		MP_OUT |= mp_s0; // set
+	}
+	
+	if(b1 == 0){
+		MP_OUT &= ~(mp_s1);
+	} else {
+		MP_OUT |= mp_s1; // set
+	}
+	
+	if(b2 == 0){
+		MP_OUT &= ~(mp_s2);
+	} else {
+		MP_OUT |= mp_s2; // set
+	}
+	
+	if(b3 == 0){
+		MP_OUT &= ~(mp_s3);
+	} else {
+		MP_OUT |= mp_s3; // set
+	}	
+	
+	cd74hc4067_enable(HIGH);
+
+	
+}
