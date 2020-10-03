@@ -171,5 +171,5 @@ void tm1637_clearDisplay(void)
 }
 
 void tm1637_delay(void){
-	delay_ms(50);
+	delay_ms(50); // set a smaller delay as time is taken up by the cd74hc4067
 }
