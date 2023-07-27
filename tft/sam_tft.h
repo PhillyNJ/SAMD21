@@ -112,7 +112,7 @@ void sam_scroll(int y);
 void sam_setScrollArea(uint16_t top, uint16_t scr, uint16_t bottom);
 
 /* paging functions*/
-void sam_fillPage(uint8_t r, uint8_t g, uint8_t b, uint8_t page);
+void sam_fillPage(uint8_t r, uint8_t g, uint8_t b, int page);
 void sam_setPage(int pageNumber);
 /* fonts */
 void sam_setCharMap(const unsigned char* cm);
@@ -122,22 +122,27 @@ void sam_setBackColor(uint8_t r, uint8_t g, uint8_t b);
 void sam_setFont(const unsigned char* f, const unsigned int (*d)[3], uint8_t c);
 /* BMPs*/
 void sam_load_raw_image_mem(int x1, int y1, int imgX, int imgY, const uint16_t *img, int size);
+void sam_load_raw_image_mem_page(int x1, int y1, int imgX, int imgY, const uint16_t *img, int size, int page);
 void sam_test(int x, int y, int sx, int sy, const uint16_t *data);
 /* draw functions*/
 void sam_setPixel(uint8_t r, uint8_t g, uint8_t b);
 void sam_fillScr(uint8_t r, uint8_t g, uint8_t b);
+
 void sam_drawRect(int x1, int y1, int x2, int y2);
 void sam_drawPixel(int x, int y);
 void sam_drawCircle(int x, int y, int radius);
 void sam_drawRoundRect(int x1, int y1, int x2, int y2);
 void sam_fillRect(int x1, int y1, int x2, int y2);
+void sam_fillRectPage(int x1, int y1, int x2, int y2, int page);
 void sam_fillRoundRect(int x1, int y1, int x2, int y2);
 void sam_fillCircle(int x, int y, int radius);
 void sam_drawLine(int x1, int y1, int x2, int y2);
 void sam_drawHLine(int x, int y, int l);
 void sam_drawVLine(int x, int y, int l);
+/* Text */
 void sam_print(const char *st, int x, int y);
 void sam_printChar(char ch, int x, int y);
 void sam_printf(uint16_t x, uint16_t y, const char* fmt, ... );
+void sam_printfPage(int page, uint16_t x, uint16_t y, const char* fmt, ... );
 
 #endif /* SAM_TFT_H_ */

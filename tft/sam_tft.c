@@ -392,33 +392,31 @@ void sam_fillScr(uint8_t r, uint8_t g, uint8_t b)
 	
 }
 
-void sam_fillPage(uint8_t r, uint8_t g, uint8_t b, uint8_t page){
-	
+
+
+void sam_fillPage(uint8_t r, uint8_t g, uint8_t b, int page){
 	int i;
 	char ch, cl;
 
 	ch = ((r & 248) | g >> 5);
 	cl = ((g & 28) << 3 | b >> 3);
 	sam_clearCs();
-		
-	if(tft_conf.orient == LANDSCAPE){
-		
-		sam_setXY(0, tft_width * (page), tft_height, tft_width * page); // paging - LANDSCAPE -works
-			
-	} else {
-		
-		printf("Portrait Paging not supported yet\n\r");
-		
-	}
+	sam_clrXY();
 	
-	int pixels = ((tft_width + 1) * (tft_height + 1) * page);
+	sam_setXY(0, page , tft_height, tft_width + page);  // landscape only works
 	
+	//printf("x1: %d y1: %d  x2: %d y2: %d\n" ,1, page + 1 , tft_height, tft_width + page); // landscape only works
+	
+	int pixels = (tft_width + 1) * (tft_height  + 1 );
 	sam_setRs();
+	
 	for (i = 0; i < (pixels); i++)
-	{		
-		sam_writeBus(ch, cl);
+	{
+		sam_writeBus(ch, cl);	
+		
 	}
-	sam_setCs();// setBit(CS);	
+	sam_setCs();
+	
 }
 
 void sam_drawPixel(int x, int y)
@@ -507,7 +505,35 @@ void sam_drawRoundRect(int x1, int y1, int x2, int y2)
 		sam_drawVLine(x2, y1 + 2, y2 - y1 - 4);
 	}
 }
+void sam_fillRectPage(int x1, int y1, int x2, int y2, int page){
+	
+	if (x1 > x2)
+	{
+		swap(int, x1, x2);
+	}
+	if (y1 > y2)
+	{
+		swap(int, y1, y2);
+	}
 
+	if (tft_conf.orient == PORTRAIT)
+	{
+		for (int i = 0; i < ((y2 - y1) / 2) + 1; i++)
+		{
+			sam_drawHLine(x1, y1 + i, x2 - x1);
+			sam_drawHLine(x1, y2 - i, x2 - x1);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < ((x2 - x1) / 2) + 1; i++)
+		{
+			sam_drawVLine(x1 + i, y1 + page, y2 - y1);
+			sam_drawVLine(x2 - i, y1 + page, y2 - y1);
+		}
+	}
+	
+}
 void sam_fillRect(int x1, int y1, int x2, int y2)
 {
 
@@ -1365,7 +1391,7 @@ void sam_scroll(int y){
 		
 	}
 	
-	sam_setCs();// sbi(P_CS, B_CS);
+	sam_setCs();
 	
 }
 
@@ -1417,6 +1443,19 @@ void sam_setPage(int pageNumber){
 	sam_scroll(pageNumber);	
 	
 }
+//sam_setXY(0, page , tft_height, tft_width + page);  // landscape only works
+void sam_load_raw_image_mem_page(int x1, int y1, int imgX, int imgY, const uint16_t *img, int size, int page){
+		sam_clearCs();
+		sam_setXY(x1, y1 + page,(imgX + x1) -1, (imgY + y1)-1 + page);
+		
+		for (int y = 0; y < size; y++) {
+			
+			sam_writeData((img[y] >> 8), img[y]);
+		}
+
+		sam_setCs();
+		sam_clrXY();
+}
 
 // not working for ssd1289 - load from sd or usb instead
 void sam_load_raw_image_mem(int x1, int y1, int imgX, int imgY, const uint16_t *img, int size)  {
@@ -1467,6 +1506,17 @@ void sam_printf(uint16_t x, uint16_t y, const char* fmt, ... ){
 	vsprintf(dest, fmt, arglist);
 	va_end( arglist );
 	sam_print(dest,x,y);
+}
+
+void sam_printfPage(int page, uint16_t x, uint16_t y, const char* fmt, ... ){
+	
+	va_list arglist;
+	char dest[MAXSTRINGSIZE];
+	va_start( arglist, fmt );
+	vsprintf(dest, fmt, arglist);
+	va_end( arglist );
+	sam_print(dest,x,y+page);
+	
 }
 
 
